@@ -1,0 +1,29 @@
+{
+  "name": "form-and-field",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": "\u003e=24.0.0 \u003c25"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node node_modules/concurrently/dist/bin/concurrently.js -k -n cms,storefront \"npm run dev:cms\" \"npm run dev:storefront\"",
+    "dev:cms": "npm run dev -w apps/cms",
+    "dev:storefront": "npm run dev -w apps/storefront",
+    "generate:types": "npm run generate:types -w apps/cms",
+    "check": "npm run check --workspaces",
+    "build": "npm run build --workspaces",
+    "seed": "npm run seed -w apps/cms",
+    "migrate": "npm run migrate -w apps/cms",
+    "format": "node scripts/run.mjs prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
+    "typescript": "^5.9.3"
+  }
+}

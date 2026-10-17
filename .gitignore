@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.local
+dist/
+.astro/
+.next/
+*.tsbuildinfo
+apps/cms/data/
+apps/cms/uploads/
+.qa/
+.playwright-cli/

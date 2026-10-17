@@ -1,0 +1,87 @@
+---
+import Layout from '../layouts/Layout.astro'
+import CartItem from '../components/CartItem.astro'
+---
+
+<Layout title="Checkout preview">
+  <section class="section">
+    <div class="page-heading">
+      <h1>Checkout preview</h1>
+      <p class="notice">
+        Local layout preview only. Payment, tax, and shipping are not
+        configured. No order will be created.
+      </p>
+    </div>
+    <div class="checkout-layout">
+      <section>
+        <h2>Address layout</h2>
+        <p class="muted">
+          Fields are for exploration only. Address information is not submitted
+          or saved.
+        </p>
+        <form id="address-preview" autocomplete="off">
+          <fieldset>
+            <legend>Delivery address preview</legend>
+            <label>
+              Full name
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Address
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Apartment / building (optional)
+              <input type="text" autocomplete="off" />
+            </label>
+            <div class="form-row">
+              <label>
+                City
+                <input type="text" autocomplete="off" />
+              </label>
+              <label>
+                Postal code
+                <input type="text" inputmode="numeric" autocomplete="off" />
+              </label>
+            </div>
+            <label>
+              State
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Country
+              <input type="text" value="India" readonly />
+            </label>
+          </fieldset>
+          <button type="button" disabled class="button">
+            Payment not configured
+          </button>
+        </form>
+      </section>
+      <section data-cart-view data-preview>
+        <h2>Your selections</h2>
+        <p data-cart-status role="status">
+          Loading your selections…
+        </p>
+        <div data-cart-lines></div>
+        <div data-cart-summary hidden class="cart-summary">
+          <div>
+            <h2>Subtotal</h2>
+            <strong data-subtotal></strong>
+          </div>
+          <p class="muted">
+            Indicative local total only; this is not an order.
+          </p>
+        </div>
+        <a href="/cart">Edit cart</a>
+      </section>
+    </div>
+    <CartItem />
+  </section>
+</Layout>
+<script>
+  const form = document.querySelector<HTMLFormElement>('#address-preview')
+  form?.addEventListener('submit', (e) => e.preventDefault())
+  window.addEventListener('pagehide', () => form?.reset())
+  window.addEventListener('pageshow', () => form?.reset())
+</script>

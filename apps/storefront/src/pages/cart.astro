@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro'
+import CartItem from '../components/CartItem.astro'
+---
+
+<Layout title="Cart">
+  <section class="section cart-page">
+    <div class="page-heading">
+      <h1>Your cart</h1>
+      <p>A place to gather the objects you’re considering.</p>
+    </div>
+    <div data-cart-view>
+      <p role="status" data-cart-status>
+        Loading your selections…
+      </p>
+      <div data-cart-lines></div>
+      <div data-cart-summary hidden class="cart-summary">
+        <div>
+          <h2>Subtotal</h2>
+          <strong data-subtotal></strong>
+        </div>
+        <p class="muted">
+          Local preview only. Prices and availability are refreshed from the
+          CMS. Tax, shipping, and payment are not configured.
+        </p>
+        <a href="/checkout" class="button">
+          Checkout preview ↗
+        </a>
+      </div>
+    </div>
+    <noscript>Enable JavaScript to view your locally saved cart.</noscript>
+    <CartItem />
+  </section>
+</Layout>

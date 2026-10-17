@@ -1,0 +1,37 @@
+---
+import { image, availability, type Product } from '../lib/cms'
+import Price from './Price.astro'
+const { product: p } = Astro.props as { product: Product }
+const img = image(p)
+---
+
+<article
+  class="product-card"
+  data-categories={(p.categories || [])
+    .map((c) => (typeof c === 'object' ? c.slug : ''))
+    .join(' ')}
+>
+  <a href={`/products/${p.slug}`} class="product-image">
+    {img.url ? (
+      <img
+        src={img.url}
+        alt={img.alt}
+        width="640"
+        height="720"
+        loading="lazy"
+      />
+    ) : (
+      <span>Image to follow</span>
+    )}
+  </a>
+  <div class="product-meta">
+    <h3>
+      <a href={`/products/${p.slug}`}>{p.name}</a>
+    </h3>
+    <Price value={p.price} />
+  </div>
+  <p class="muted">
+    {availability(p.availability)}
+    {p.demo && ' · Demonstration'}
+  </p>
+</article>

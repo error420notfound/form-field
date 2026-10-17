@@ -1,0 +1,19 @@
+{
+  "name": "@form-field/storefront",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../scripts/run.mjs astro dev --port 4321",
+    "build": "node ../../scripts/run.mjs astro build",
+    "start": "node dist/server/entry.mjs",
+    "check": "node ../../scripts/run.mjs astro check"
+  },
+  "dependencies": {
+    "astro": "7.4.0",
+    "@astrojs/node": "11.1.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@types/node": "^24.0.0"
+  }
+}

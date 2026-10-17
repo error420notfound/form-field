@@ -1,0 +1,17 @@
+---
+const { name } = Astro.props
+---
+
+<header class="site-header">
+  <a class="wordmark" href="/">
+    {name}
+    <span aria-hidden="true">↗</span>
+  </a>
+  <nav aria-label="Main navigation">
+    <a href="/shop">Shop</a>
+    <a href="/#approach">Our approach</a>
+    <a href="/cart">
+      Cart <span data-cart-count>(0)</span>
+    </a>
+  </nav>
+</header>

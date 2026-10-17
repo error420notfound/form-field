@@ -1,0 +1,17 @@
+---
+const { name, introduction, email } = Astro.props
+---
+
+<footer class="site-footer">
+  <div>
+    <a class="wordmark" href="/">
+      {name}
+    </a>
+    <p>{introduction}</p>
+  </div>
+  <div>
+    <a href="/shop">Explore the catalogue</a>
+    {email && <a href={`mailto:${email}`}>{email}</a>}
+    <small>Local studio store · Checkout preview only</small>
+  </div>
+</footer>

@@ -1,0 +1,55 @@
+---
+import { media, mediaURL } from '../lib/cms'
+const { product } = Astro.props
+const images = (product.gallery || []).map(media).filter(Boolean)
+---
+
+<div class="gallery" data-gallery>
+  {images.length ? (
+    <>
+      <img
+        class="gallery-main"
+        src={mediaURL(images[0].sizes?.gallery?.url || images[0].url)}
+        alt={images[0].alt}
+        width="800"
+        height="900"
+      />
+      {images.length > 1 && (
+        <div class="thumbnails">
+          {images.map((m: any, i: number) => (
+            <button
+              type="button"
+              aria-label={`View image ${i + 1}: ${m.alt}`}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+              data-src={mediaURL(m.sizes?.gallery?.url || m.url)}
+              data-alt={m.alt}
+            >
+              <img
+                src={mediaURL(m.sizes?.card?.url || m.url)}
+                alt=""
+                width="80"
+                height="90"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  ) : (
+    <div class="image-empty">Product imagery to follow</div>
+  )}
+</div>
+<script>
+  document.querySelectorAll('[data-gallery]').forEach((g) =>
+    g.querySelectorAll<HTMLButtonElement>('button[data-src]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const img = g.querySelector<HTMLImageElement>('.gallery-main')!
+        img.src = b.dataset.src!
+        img.alt = b.dataset.alt!
+        g.querySelectorAll('button').forEach((v) =>
+          v.setAttribute('aria-pressed', String(v === b)),
+        )
+      }),
+    ),
+  )
+</script>

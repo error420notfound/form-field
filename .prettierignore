@@ -1,0 +1,13 @@
+node_modules
+package-lock.json
+**/payload-types.ts
+**/next-env.d.ts
+**/AGENTS.md
+**/data
+**/uploads
+**/dist
+**/.next
+**/.astro
+.qa
+.playwright-cli
+index.html

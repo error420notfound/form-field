@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro'
+import ProductCard from '../components/ProductCard.astro'
+import { products, categories, type Product, type Category } from '../lib/cms'
+let items: Product[] = []
+let cats: Category[] = []
+let error = ''
+try {
+  ;[items, { docs: cats }] = await Promise.all([products(), categories()])
+} catch (e) {
+  error = (e as Error).message
+}
+const selected = Astro.url.searchParams.get('category') || ''
+const filtered = selected
+  ? items.filter((p) =>
+      p.categories?.some((c) => typeof c === 'object' && c.slug === selected),
+    )
+  : items
+---
+
+<Layout title="Shop">
+  <section class="section">
+    <div class="page-heading">
+      <h1>The catalogue</h1>
+      <p>Explore objects through purpose, material, and detail.</p>
+    </div>
+    <form class="filters" method="get">
+      <label for="category">Category</label>
+      <select id="category" name="category">
+        <option value="">All objects</option>
+        {cats.map((c) => (
+          <option value={c.slug} selected={selected === c.slug}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      <button type="submit" class="button secondary">
+        Filter
+      </button>
+    </form>
+    {error ? (
+      <p role="alert" class="notice">
+        {error}
+      </p>
+    ) : filtered.length ? (
+      <div class="product-grid">
+        {filtered.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    ) : (
+      <p class="notice">
+        No products here yet. <a href="/shop">View all objects</a>, or publish
+        products in the CMS.
+      </p>
+    )}
+  </section>
+</Layout>
+<script>
+  document
+    .querySelector<HTMLSelectElement>('#category')
+    ?.addEventListener('change', (e) =>
+      (e.target as HTMLSelectElement).form?.requestSubmit(),
+    )
+</script>

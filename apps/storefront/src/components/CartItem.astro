@@ -1,0 +1,27 @@
+<template id="cart-item-template">
+  <article class="cart-item">
+    <a data-item-link>
+      <img data-item-image width="120" height="135" alt="" />
+    </a>
+    <div>
+      <h2 data-item-title></h2>
+      <p data-item-availability class="muted"></p>
+      <p data-item-price></p>
+      <label data-quantity-label>
+        Quantity{' '}
+        <input
+          data-item-quantity
+          type="number"
+          min="1"
+          max="99"
+          step="1"
+          required
+        />
+      </label>
+      <button data-item-remove class="text-button" type="button">
+        Remove
+      </button>
+    </div>
+    <strong data-item-total></strong>
+  </article>
+</template>

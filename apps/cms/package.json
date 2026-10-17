@@ -1,0 +1,32 @@
+{
+  "name": "@form-field/cms",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../scripts/run.mjs next dev -H localhost -p 3000",
+    "build": "node ../../scripts/run.mjs next build",
+    "start": "node ../../scripts/run.mjs next start -H localhost -p 3000",
+    "check": "node ../../scripts/run.mjs typescript --noEmit",
+    "generate:types": "node ../../scripts/run.mjs payload generate:types",
+    "seed": "node ../../scripts/run.mjs tsx src/seed.ts",
+    "migrate": "node ../../scripts/run.mjs payload migrate",
+    "migrate:create": "node ../../scripts/run.mjs payload migrate:create"
+  },
+  "dependencies": {
+    "@payloadcms/db-sqlite": "3.91.0",
+    "@payloadcms/next": "3.91.0",
+    "dotenv": "^16.6.1",
+    "graphql": "^16.11.0",
+    "next": "16.4.2",
+    "payload": "3.91.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tsx": "^4.20.6"
+  }
+}

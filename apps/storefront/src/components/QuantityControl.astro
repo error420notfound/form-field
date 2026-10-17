@@ -1,0 +1,17 @@
+---
+const { value = 1, label = 'Quantity', id = 'quantity' } = Astro.props
+---
+
+<label class="quantity" for={id}>
+  {label}
+  <input
+    id={id}
+    name="quantity"
+    type="number"
+    min="1"
+    max="99"
+    step="1"
+    value={value}
+    required
+  />
+</label>

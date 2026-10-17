@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import ProductGallery from '../../components/ProductGallery.astro'
+import AddToCart from '../../components/AddToCart.astro'
+import Price from '../../components/Price.astro'
+import { product, availability, type Product } from '../../lib/cms'
+let p: Product | undefined
+let error = ''
+try {
+  p = await product(Astro.params.slug!)
+} catch (e) {
+  error = (e as Error).message
+}
+if (!p) Astro.response.status = error ? 503 : 404
+---
+
+<Layout title={p?.name || 'Product unavailable'}>
+  {p ? (
+    <section class="section">
+      <a class="back" href="/shop">
+        ← All objects
+      </a>
+      <div class="product-detail">
+        <ProductGallery product={p} />
+        <div class="product-info">
+          {p.demo && <p class="muted">Fictional demonstration product</p>}
+          <h1>{p.name}</h1>
+          <div class="price-row">
+            <Price value={p.price} />
+            <span class="muted">{availability(p.availability)}</span>
+          </div>
+          <p class="lead">{p.shortDescription}</p>
+          <AddToCart product={p} />
+          <p class="prose">{p.description}</p>
+          {p.features?.length ? (
+            <section class="details">
+              <h2>Design details</h2>
+              {p.features.map((f) => (
+                <div>
+                  <h3>{f.title}</h3>
+                  <p>{f.description}</p>
+                </div>
+              ))}
+            </section>
+          ) : null}
+          {[
+            ['Materials', p.materials],
+            ['Dimensions', p.dimensions],
+            ['Care', p.care],
+            ["What's included", p.included],
+          ]
+            .filter(([, value]) => value)
+            .map(([heading, value]) => (
+              <section class="details">
+                <h2>{heading}</h2>
+                <p class="prose">{value}</p>
+              </section>
+            ))}
+        </div>
+      </div>
+    </section>
+  ) : (
+    <section class="section">
+      <h1>{error ? 'The CMS is unavailable' : 'Object not found'}</h1>
+      <p class="notice">
+        {error || 'This product may have been removed or is not published.'}
+      </p>
+      <a href="/shop">Back to catalogue</a>
+    </section>
+  )}
+</Layout>

@@ -1,0 +1,70 @@
+---
+import Layout from '../layouts/Layout.astro'
+import ProductCard from '../components/ProductCard.astro'
+import { settings, products, image, type Product } from '../lib/cms'
+let store
+let items: Product[] = []
+let error = ''
+try {
+  ;[store, items] = await Promise.all([
+    settings(),
+    products('&where[featured][equals]=true'),
+  ])
+} catch (e) {
+  error = (e as Error).message
+}
+const hero = items[0] && image(items[0])
+---
+
+<Layout title="Studio">
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>{store?.homeHeading || 'Objects, considered.'}</h1>
+      <p>{store?.homeText}</p>
+      <a class="button" href="/shop">
+        Explore the catalogue <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <div class="hero-art">
+      {hero?.url ? (
+        <img src={hero.url} alt={hero.alt} width="800" height="900" />
+      ) : (
+        <p>Product imagery will appear here.</p>
+      )}
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-heading">
+      <h2>Selected objects</h2>
+      <a href="/shop">View all products ↗</a>
+    </div>
+    {error ? (
+      <p class="notice" role="alert">
+        {error}
+      </p>
+    ) : items.length ? (
+      <div class="product-grid">
+        {items.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    ) : (
+      <p class="notice">
+        The catalogue is taking shape. Publish products in the CMS, or run the
+        demonstration seed.
+      </p>
+    )}
+  </section>
+  <section id="approach" class="approach">
+    <p class="section-label">Our approach</p>
+    <h2>
+      Purpose first.
+      <br />
+      Details that matter.
+    </h2>
+    <p>
+      We use this space to share how an object works, what it is made from, and
+      the decisions behind its form. Explore each product for the details.
+    </p>
+  </section>
+</Layout>
