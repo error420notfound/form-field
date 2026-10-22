@@ -159,6 +159,15 @@ export interface Media {
   id: number;
   alt: string;
   caption?: string | null;
+  placeholder?: boolean | null;
+  sourcePage?: string | null;
+  author?: string | null;
+  licenceURL?: string | null;
+  downloadDate?: string | null;
+  attribution?: string | null;
+  role?: string | null;
+  mobileFocalX?: number | null;
+  mobileFocalY?: number | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -209,11 +218,27 @@ export interface Product {
   id: number;
   name: string;
   slug: string;
+  descriptor?: string | null;
+  editorialOrder?: number | null;
+  homepageSize?: ('broad' | 'paired') | null;
+  themeId?: ('neutral' | 'blue' | 'yellow') | null;
+  purchaseEligible?: boolean | null;
+  reviewOnly?: boolean | null;
+  relatedObjects?: (number | Product)[] | null;
+  story?:
+    | {
+        chapterId: string;
+        heading: string;
+        copy: string;
+        media?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
   shortDescription: string;
   description: string;
   gallery?: (number | Media)[] | null;
   categories?: (number | Category)[] | null;
-  price: number;
+  price?: number | null;
   currency: 'INR';
   availability: 'available' | 'coming-soon' | 'unavailable';
   materials?: string | null;
@@ -345,6 +370,15 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  placeholder?: T;
+  sourcePage?: T;
+  author?: T;
+  licenceURL?: T;
+  downloadDate?: T;
+  attribution?: T;
+  role?: T;
+  mobileFocalX?: T;
+  mobileFocalY?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -399,6 +433,22 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  descriptor?: T;
+  editorialOrder?: T;
+  homepageSize?: T;
+  themeId?: T;
+  purchaseEligible?: T;
+  reviewOnly?: T;
+  relatedObjects?: T;
+  story?:
+    | T
+    | {
+        chapterId?: T;
+        heading?: T;
+        copy?: T;
+        media?: T;
+        id?: T;
+      };
   shortDescription?: T;
   description?: T;
   gallery?: T;

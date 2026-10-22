@@ -1,6 +1,6 @@
-# Form & Field
+﻿# Form & Field
 
-A local ecommerce foundation for an independent design studio. The working name and introduction live in Payload **Store Settings**; change them there to rebrand the storefront.
+A local, story-led storefront for **form+field**, built with Astro, Payload, React islands and shadcn/ui. The design follows `ecomm-design.md`; the shared catalogue stays neutral while product stories theme the full document.
 
 ## Prerequisites and installation
 
@@ -21,6 +21,7 @@ On macOS/Linux, use `npm` instead of `npm.cmd`. Scripts call Node entrypoints di
 ## Run locally
 
 ```powershell
+npm.cmd run setup
 npm.cmd run dev
 ```
 
@@ -44,7 +45,7 @@ This creates three clearly fictional demonstration products, categories, locally
 
 ## Design and edit
 
-Edit products, upload images with descriptive alt text, set featured products, and edit Store Settings in Payload. Publish products to make them visible. Refresh Astro to see published changes without rebuilding. Draft changes remain private. Categories filter the shop; unavailable and coming-soon objects cannot be added to the cart. Storefront CSS tokens are in `apps/storefront/src/styles/global.css`.
+Edit products, story chapters, editorial order, broad/paired homepage modules, approved theme IDs and related objects in Payload. Upload media with descriptive alt text, provenance and desktop/mobile focal points. Publish stories independently of purchase eligibility. Unknown prices stay unknown; an available status, supplied integer price, purchase eligibility and a cleared local-review flag are all needed for Add to bag. Existing priced demo records remain compatible. Storefront tokens are in `apps/storefront/src/styles/global.css`. The public brand is fixed to form+field. Store Settings still supplies confirmed contact information.
 
 ## Checks and production builds
 
@@ -68,6 +69,25 @@ Payload pushes schema changes during development. Back up before changing schema
 
 Payment, order creation, taxes, shipping, customer accounts, variants, inventory reservations, discounts, and deployment are absent. The cart stores only IDs and quantities in localStorage, refreshes product details from Payload, and caps quantities at 99. Removed/unpublished/unavailable products are excluded from totals. Totals are local previews, not transaction values. Checkout has no submission or payment fields and does not persist addresses.
 
-The initial catalogue fetch is limited to 100 products and 100 categories; add pagination before expanding beyond that. Public uploads are accessible by URL and should contain only publishable product imagery. No external fonts, image hosts, or paid services are needed. See [architecture](docs/architecture.md).
+The initial catalogue fetch is limited to 100 products and 100 categories; add pagination before expanding beyond that. Public uploads are accessible by URL and should contain only publishable product imagery. Fonts and review imagery are served locally; no external font or image requests are required. See [architecture](docs/architecture.md).
 
 Dependency audit at setup reported upstream transitive advisories in Payload's tooling/UI dependency chain (including Drizzle tooling and Sass). Payload/Next and Sharp were updated to current compatible patched releases; the audit is not clean. Recheck `npm.cmd audit` when upgrading, and keep this foundation local. Email delivery is not configured; Payload uses its development console transport.
+
+## Redesign review collection
+
+With both applications stopped, back up CMS data/uploads, then run:
+
+```powershell
+npm.cmd run setup:review
+npm.cmd run dev
+```
+
+The idempotent review setup uses two additive SQLite upgrade stages, creates four published local-review concepts, and attaches their labelled imagery. It skips existing review slugs and preserves existing galleries and other product records. Run this command before opening an older database with the redesigned app; SQLite/Drizzle must add new columns before relaxing the old required price constraint. This is a local development upgrade, not a production migration workflow.
+
+The homepage leads with PourFrame, Lighting, Macro keypad and Thermal printer. Existing fictional demo records remain in Objects and can exercise Bag interactions. No prices, specifications or shipping promises are invented for the four review objects. Names other than PourFrame, colour assignments, copy and images remain drafts. Related objects appear only when explicitly selected in Payload.
+
+Routes: Home, Objects (`/shop`), product stories, About, Support, Bag (`/cart`) and demo checkout. The header Bag opens a themed sheet; the standalone Bag and checkout use the neutral theme. All Bag controls share the existing `studio-cart-v1` storage contract. Checkout has no submitting form, payment fields or address persistence.
+
+Faculty Glyphic and Geist are self-hosted through Fontsource. Font and Keyline licences are retained in `docs/licences`. Review asset provenance is in `docs/design/asset-provenance.json`; these AI-generated references are expressly not product photography or confirmed designs. Chroma snapshots and source revision are under `apps/storefront/src/data`.
+
+Use Node 24. Validation commands: `npm.cmd test`, `npm.cmd run check`, `npm.cmd run build`. The purchase-policy tests protect unknown-price and review eligibility rules. Browser verification and intentional concept corrections are recorded in `docs/design/review.md`.

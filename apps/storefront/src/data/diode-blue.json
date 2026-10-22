@@ -1,0 +1,21 @@
+{
+  "id": "engineered-diode-blue",
+  "type": "engineered",
+  "name": "Diode Blue",
+  "slug": "diode-blue",
+  "description": "Bright screen-oriented blue shifted toward cyan.",
+  "tags": [
+    "engineered",
+    "high-visibility",
+    "vibrant"
+  ],
+  "color": {
+    "hex": "#006CFF",
+    "oklch": {
+      "l": 0.574881,
+      "c": 0.233917,
+      "h": 259.954108
+    }
+  },
+  "textColor": "auto"
+}

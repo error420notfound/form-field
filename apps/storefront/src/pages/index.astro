@@ -1,70 +1,69 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import ProductCard from '../components/ProductCard.astro'
-import { settings, products, image, type Product } from '../lib/cms'
-let store
-let items: Product[] = []
-let error = ''
+import ObjectFeature from '../components/ObjectFeature.astro'
+import { catalogue } from '../lib/catalogue'
+import type { Product } from '../lib/cms'
+let items: Product[] = [],
+  error = ''
 try {
-  ;[store, items] = await Promise.all([
-    settings(),
-    products('&where[featured][equals]=true'),
-  ])
-} catch (e) {
-  error = (e as Error).message
+  items = await catalogue()
+} catch {
+  error = 'The catalogue is temporarily unavailable. Please try again shortly.'
 }
-const hero = items[0] && image(items[0])
+if (error) Astro.response.status = 503
+const publicItems = items.filter((p) => p.reviewOnly || !p.demo)
+const sequence = publicItems.length ? publicItems : items
+const broad = sequence.some((p) => p.homepageSize === 'broad')
+  ? sequence.filter((p) => p.homepageSize === 'broad')
+  : sequence.slice(0, 2)
+const paired = sequence.filter((p) => !broad.includes(p))
 ---
 
-<Layout title="Studio">
-  <section class="hero">
-    <div class="hero-copy">
-      <h1>{store?.homeHeading || 'Objects, considered.'}</h1>
-      <p>{store?.homeText}</p>
-      <a class="button" href="/shop">
-        Explore the catalogue <span aria-hidden="true">↗</span>
+<Layout title="Objects shaped by familiar desires">
+  {error ? (
+    <section class="section error-state">
+      <h1>Objects, in a moment.</h1>
+      <p role="alert">{error}</p>
+      <a class="button" href="/">
+        Try again
+      </a>
+    </section>
+  ) : sequence.length ? (
+    <>
+      <div class="catalogue-features">
+        {broad.map((p, i) => (
+          <ObjectFeature product={p} lead={i === 0} />
+        ))}
+        <div class="paired-features">
+          {paired.map((p) => (
+            <ObjectFeature product={p} compact />
+          ))}
+        </div>
+      </div>
+    </>
+  ) : (
+    <section class="section">
+      <h1>The collection is taking shape.</h1>
+      <p>Objects will appear here when their stories are ready.</p>
+    </section>
+  )}
+  <section class="brand-note" id="approach">
+    <h2>
+      Objects shaped
+      <br />
+      by familiar desires
+      <span class="brand-dot" aria-hidden="true">
+        .
+      </span>
+    </h2>
+    <div>
+      <p>
+        A small irritation. A familiar gesture. A possibility that feels
+        overdue. These are places to begin.
+      </p>
+      <a class="text-link" href="/about">
+        About form+field
       </a>
     </div>
-    <div class="hero-art">
-      {hero?.url ? (
-        <img src={hero.url} alt={hero.alt} width="800" height="900" />
-      ) : (
-        <p>Product imagery will appear here.</p>
-      )}
-    </div>
-  </section>
-  <section class="section">
-    <div class="section-heading">
-      <h2>Selected objects</h2>
-      <a href="/shop">View all products ↗</a>
-    </div>
-    {error ? (
-      <p class="notice" role="alert">
-        {error}
-      </p>
-    ) : items.length ? (
-      <div class="product-grid">
-        {items.map((product) => (
-          <ProductCard product={product} />
-        ))}
-      </div>
-    ) : (
-      <p class="notice">
-        The catalogue is taking shape. Publish products in the CMS, or run the
-        demonstration seed.
-      </p>
-    )}
-  </section>
-  <section id="approach" class="approach">
-    <p class="section-label">Our approach</p>
-    <h2>
-      Purpose first.
-      <br />
-      Details that matter.
-    </h2>
-    <p>
-      We use this space to share how an object works, what it is made from, and
-      the decisions behind its form. Explore each product for the details.
-    </p>
   </section>
 </Layout>

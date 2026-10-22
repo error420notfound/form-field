@@ -1,19 +1,14 @@
 ---
-import QuantityControl from './QuantityControl.astro'
+import Purchase from './interactive/Purchase'
+import { canPurchase } from '../lib/catalogue'
 const { product } = Astro.props
 ---
 
-{product.availability === 'available' ? (
-  <form data-add-to-cart data-id={product.id} class="add-form">
-    <QuantityControl />
-    <button class="button" type="submit">
-      Add to cart <span aria-hidden="true">↗</span>
-    </button>
-    <p data-add-status role="status" class="muted"></p>
-  </form>
+{canPurchase(product) ? (
+  <>
+    <Purchase id={product.id} name={product.name} client:load />
+    <noscript>Enable JavaScript to save an object in your bag.</noscript>
+  </>
 ) : (
-  <p class="notice">
-    This product is currently{' '}
-    {product.availability === 'coming-soon' ? 'coming soon' : 'unavailable'}.
-  </p>
+  <p class="availability-note">Not available to purchase.</p>
 )}

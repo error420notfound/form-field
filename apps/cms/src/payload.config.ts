@@ -25,6 +25,39 @@ const products: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'slug', type: 'text', required: true, unique: true, index: true },
+    { name: 'descriptor', type: 'text' },
+    { name: 'editorialOrder', type: 'number', defaultValue: 100 },
+    {
+      name: 'homepageSize',
+      type: 'select',
+      defaultValue: 'paired',
+      options: ['broad', 'paired'],
+    },
+    {
+      name: 'themeId',
+      type: 'select',
+      defaultValue: 'neutral',
+      options: ['neutral', 'blue', 'yellow'],
+    },
+    { name: 'purchaseEligible', type: 'checkbox', defaultValue: true },
+    { name: 'reviewOnly', type: 'checkbox', defaultValue: false },
+    {
+      name: 'relatedObjects',
+      type: 'relationship',
+      relationTo: 'products',
+      hasMany: true,
+      maxRows: 2,
+    },
+    {
+      name: 'story',
+      type: 'array',
+      fields: [
+        { name: 'chapterId', type: 'text', required: true },
+        { name: 'heading', type: 'text', required: true },
+        { name: 'copy', type: 'textarea', required: true },
+        { name: 'media', type: 'upload', relationTo: 'media' },
+      ],
+    },
     { name: 'shortDescription', type: 'textarea', required: true },
     { name: 'description', type: 'textarea', required: true },
     { name: 'gallery', type: 'upload', relationTo: 'media', hasMany: true },
@@ -37,9 +70,10 @@ const products: CollectionConfig = {
     {
       name: 'price',
       type: 'number',
-      required: true,
+      required: process.env.FORM_FIELD_ADDITIVE_SCHEMA === '1',
       min: 0,
       validate: (value: unknown) =>
+        value == null ||
         (Number.isSafeInteger(value) && Number(value) >= 0) ||
         'Enter a non-negative integer in paise.',
     },
@@ -87,7 +121,13 @@ export default buildConfig({
   serverURL: process.env.CMS_URL || 'http://localhost:3000',
   cors: [process.env.STOREFRONT_ORIGIN || 'http://localhost:4321'],
   csrf: [process.env.CMS_URL || 'http://localhost:3000'],
-  admin: { user: 'users', importMap: { baseDir: root } },
+  admin: {
+    user: 'users',
+    importMap: {
+      baseDir: root,
+      importMapFile: path.join(root, 'src/app/(payload)/admin/importMap.ts'),
+    },
+  },
   db: sqliteAdapter({
     client: { url: process.env.DATABASE_URL || 'file:./data/store.db' },
   }),
@@ -114,6 +154,27 @@ export default buildConfig({
       fields: [
         { name: 'alt', type: 'text', required: true },
         { name: 'caption', type: 'textarea' },
+        { name: 'placeholder', type: 'checkbox', defaultValue: false },
+        { name: 'sourcePage', type: 'text' },
+        { name: 'author', type: 'text' },
+        { name: 'licenceURL', type: 'text' },
+        { name: 'downloadDate', type: 'date' },
+        { name: 'attribution', type: 'text' },
+        { name: 'role', type: 'text' },
+        {
+          name: 'mobileFocalX',
+          type: 'number',
+          min: 0,
+          max: 100,
+          defaultValue: 50,
+        },
+        {
+          name: 'mobileFocalY',
+          type: 'number',
+          min: 0,
+          max: 100,
+          defaultValue: 50,
+        },
       ],
     },
     {

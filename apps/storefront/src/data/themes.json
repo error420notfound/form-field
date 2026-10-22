@@ -1,0 +1,26 @@
+{
+  "revision": "c38bfa6b311a95788fb2f39bafb71323885a3010",
+  "source": "https://github.com/error420notfound/chroma-catalogue",
+  "themes": {
+    "neutral": {
+      "sourceIds": [],
+      "canvas": "#EAE7DF"
+    },
+    "blue": {
+      "sourceIds": [
+        "engineered-diode-blue"
+      ],
+      "sourceHex": "#006CFF",
+      "canvas": "#DBE6EF",
+      "note": "Locally resolved quiet blue environment; draft product assignment."
+    },
+    "yellow": {
+      "sourceIds": [
+        "engineered-acid-yellow"
+      ],
+      "sourceHex": "#DFFF00",
+      "canvas": "#EEF1CC",
+      "note": "Locally resolved pale yellow environment; draft product assignment."
+    }
+  }
+}

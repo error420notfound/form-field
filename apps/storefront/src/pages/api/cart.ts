@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro'
+import { canPurchase } from '../../lib/catalogue'
 import { products, image, price, availability } from '../../lib/cms'
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -33,8 +34,8 @@ export const POST: APIRoute = async ({ request }) => {
           purchasable: false,
           name: 'Removed or unpublished product',
         }
-      const purchasable = p.availability === 'available'
-      const total = purchasable ? p.price * s.quantity : 0
+      const purchasable = canPurchase(p)
+      const total = purchasable ? (p.price ?? 0) * s.quantity : 0
       subtotal += total
       return {
         ...s,
@@ -43,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
         image: image(p),
         availability: availability(p.availability),
         purchasable,
-        unitPrice: price(p.price),
+        unitPrice: typeof p.price === 'number' ? price(p.price) : null,
         lineTotal: price(total),
       }
     })

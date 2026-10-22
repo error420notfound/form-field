@@ -42,7 +42,18 @@ document
       if (!form.reportValidity()) return
       const id = Number(form.dataset.id),
         quantity = Number(new FormData(form).get('quantity'))
+      const status = form.querySelector<HTMLElement>('[data-add-status]')!
       const existing = selections.find((s) => s.id === id)
+      if (existing && existing.quantity + quantity > 99) {
+        status.textContent =
+          'You can select up to 99 of each object. Adjust the quantity in your cart.'
+        return
+      }
+      if (!existing && selections.length >= 100) {
+        status.textContent =
+          'Your cart holds up to 100 different objects. Remove an object before adding another.'
+        return
+      }
       if (existing)
         existing.quantity = Math.min(99, existing.quantity + quantity)
       else if (selections.length < 100) selections.push({ id, quantity })
@@ -53,7 +64,24 @@ document
     }),
   )
 let generation = 0
-async function render() {
+let removedSelection: { selection: Selection; index: number } | undefined
+const undoPanel = document.querySelector<HTMLElement>('[data-cart-undo]')
+const undoButton =
+  document.querySelector<HTMLButtonElement>('[data-undo-remove]')
+undoButton?.addEventListener('click', () => {
+  if (!removedSelection) return
+  const { selection, index } = removedSelection
+  if (
+    !selections.some((item) => item.id === selection.id) &&
+    selections.length < 100
+  )
+    selections.splice(index, 0, selection)
+  removedSelection = undefined
+  if (undoPanel) undoPanel.hidden = true
+  save()
+  void render(selection.id)
+})
+async function render(focusProduct?: number) {
   const root = document.querySelector<HTMLElement>('[data-cart-view]')
   if (!root) return
   const current = ++generation
@@ -69,11 +97,14 @@ async function render() {
     a.href = '/shop'
     a.textContent = 'Browse objects ↗'
     status.append(' ', a)
+    if (document.activeElement === document.body && removedSelection)
+      undoButton?.focus()
     return
   }
   status.textContent = 'Refreshing prices and availability…'
   try {
     const res = await fetch('/api/cart', {
+      signal: AbortSignal.timeout(10000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(selections),
@@ -81,6 +112,13 @@ async function render() {
     const data = await res.json()
     if (!res.ok) throw new Error(data.error)
     if (current !== generation) return
+    const active = document.activeElement as HTMLElement | null
+    const activeRow = active?.closest<HTMLElement>('[data-cart-id]')
+    const focusId =
+      focusProduct ?? (activeRow ? Number(activeRow.dataset.cartId) : undefined)
+    const focusAction = active?.matches('[data-item-remove]')
+      ? '[data-item-remove]'
+      : '[data-item-quantity]'
     lines.replaceChildren()
     for (const item of data.lines) {
       const template = document.querySelector<HTMLTemplateElement>(
@@ -88,10 +126,14 @@ async function render() {
       )!
       const fragment = template.content.cloneNode(true) as DocumentFragment
       const row = fragment.querySelector<HTMLElement>('article')!
+      row.dataset.cartId = String(item.id)
       const title = row.querySelector<HTMLElement>('[data-item-title]')!
       title.textContent = item.name
       const link = row.querySelector<HTMLAnchorElement>('[data-item-link]')!
-      if (item.url) link.href = item.url
+      if (item.url) {
+        link.href = item.url
+        link.setAttribute('aria-label', `View ${item.name}`)
+      }
       const img = row.querySelector<HTMLImageElement>('img')!
       if (item.image?.url) {
         img.src = item.image.url
@@ -126,6 +168,14 @@ async function render() {
           void render()
         })
         remove.addEventListener('click', () => {
+          const index = selections.findIndex((s) => s.id === item.id)
+          removedSelection = { selection: { ...selections[index] }, index }
+          if (undoPanel) {
+            undoPanel.hidden = false
+            undoPanel.querySelector('[data-undo-message]')!.textContent =
+              `${item.name} removed from your cart.`
+            undoButton?.focus()
+          }
           selections = selections.filter((s) => s.id !== item.id)
           save()
           void render()
@@ -133,17 +183,28 @@ async function render() {
       }
       lines.append(fragment)
     }
+    if (
+      focusId !== undefined &&
+      (!document.activeElement || document.activeElement === document.body)
+    ) {
+      lines
+        .querySelector<HTMLElement>(
+          `[data-cart-id="${focusId}"] ${focusAction}`,
+        )
+        ?.focus()
+    }
     root.querySelector('[data-subtotal]')!.textContent = data.subtotal
     summary.hidden = !data.lines.some(
       (s: { purchasable: boolean }) => s.purchasable,
     )
     status.textContent = storageOK
-      ? ''
+      ? `Cart refreshed. Subtotal ${data.subtotal}.`
       : 'Browser storage is unavailable. Changes may not survive refresh.'
   } catch (e) {
     if (current !== generation) return
     lines.replaceChildren()
-    status.textContent = (e as Error).message || 'Could not load cart.'
+    status.textContent =
+      'Could not refresh your cart. Check that the CMS is running, then retry. Your saved selections have been kept.'
     const retry = document.createElement('button')
     retry.textContent = 'Retry'
     retry.type = 'button'

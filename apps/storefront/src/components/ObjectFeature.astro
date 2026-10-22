@@ -1,0 +1,81 @@
+---
+import { image, media, type Product } from '../lib/cms'
+import { art, descriptor } from '../lib/catalogue'
+import { ArrowRight } from './icons'
+const {
+  product: p,
+  lead = false,
+  compact = false,
+} = Astro.props as { product: Product; lead?: boolean; compact?: boolean }
+const src = art(p, !compact) || image(p).url
+const Heading = lead ? 'h1' : 'h2'
+const sourceMedia = media(p.gallery?.[0])
+const crop = {
+  '--media-x': (sourceMedia?.focalX ?? 50) + '%',
+  '--media-y': (sourceMedia?.focalY ?? 50) + '%',
+  '--mobile-media-x':
+    (sourceMedia?.mobileFocalX ?? sourceMedia?.focalX ?? 50) + '%',
+  '--mobile-media-y':
+    (sourceMedia?.mobileFocalY ?? sourceMedia?.focalY ?? 50) + '%',
+}
+---
+
+<article
+  style={crop}
+  class:list={[
+    'object-feature',
+    { 'object-feature--lead': lead, 'object-feature--compact': compact },
+  ]}
+>
+  {src && (
+    <picture class="feature-art">
+      {art(p) && !compact && (
+        <source
+          media="(max-width:767px)"
+          type="image/webp"
+          srcset={art(p)!.replace('.webp', '-640.webp')}
+        />
+      )}
+      {art(p) && (
+        <source
+          type="image/webp"
+          srcset={`${src.replace('.webp', '-640.webp')} 640w, ${src} 1536w`}
+          sizes={compact ? '(min-width: 768px) 50vw, 100vw' : '100vw'}
+        />
+      )}
+      <img
+        src={src}
+        alt={
+          p.reviewOnly
+            ? `Illustrative concept for ${p.name}; not an actual product design`
+            : image(p).alt
+        }
+        width="1536"
+        height="1024"
+        loading={lead ? 'eager' : 'lazy'}
+        fetchpriority={lead ? 'high' : 'auto'}
+      />
+    </picture>
+  )}
+  <div class="feature-copy">
+    <Heading>
+      <a href={`/products/${p.slug}`}>
+        {p.name}
+        <span class="brand-dot" aria-hidden="true">
+          .
+        </span>
+      </a>
+    </Heading>
+    <p>
+      {descriptor(p)}
+      {p.reviewOnly && ' · Draft concept'}
+    </p>
+    <a class="story-link" href={`/products/${p.slug}`}>
+      <ArrowRight size={24} />
+      <span>Explore {p.name}</span>
+    </a>
+  </div>
+  {p.reviewOnly && (
+    <span class="placeholder-label">Illustrative placeholder</span>
+  )}
+</article>

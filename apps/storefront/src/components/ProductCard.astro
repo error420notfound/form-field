@@ -1,37 +1,50 @@
 ---
-import { image, availability, type Product } from '../lib/cms'
-import Price from './Price.astro'
+import { image, media, price, availability, type Product } from '../lib/cms'
+import { art, descriptor } from '../lib/catalogue'
 const { product: p } = Astro.props as { product: Product }
-const img = image(p)
+const img = image(p),
+  src = art(p) || img.url
+const Heading = Astro.props.headingLevel === 3 ? 'h3' : 'h2'
+const sourceMedia = media(p.gallery?.[0])
+const crop = {
+  '--media-x': (sourceMedia?.focalX ?? 50) + '%',
+  '--media-y': (sourceMedia?.focalY ?? 50) + '%',
+  '--mobile-media-x':
+    (sourceMedia?.mobileFocalX ?? sourceMedia?.focalX ?? 50) + '%',
+  '--mobile-media-y':
+    (sourceMedia?.mobileFocalY ?? sourceMedia?.focalY ?? 50) + '%',
+}
 ---
 
-<article
-  class="product-card"
-  data-categories={(p.categories || [])
-    .map((c) => (typeof c === 'object' ? c.slug : ''))
-    .join(' ')}
->
+<article class="product-card" style={crop}>
   <a href={`/products/${p.slug}`} class="product-image">
-    {img.url ? (
+    {src ? (
       <img
-        src={img.url}
-        alt={img.alt}
+        src={src}
+        alt={p.reviewOnly ? `Illustrative concept for ${p.name}` : img.alt}
         width="640"
-        height="720"
+        height="480"
         loading="lazy"
       />
     ) : (
-      <span>Image to follow</span>
+      <span>Imagery to follow</span>
+    )}
+    {p.reviewOnly && (
+      <span class="placeholder-label">Illustrative placeholder</span>
     )}
   </a>
   <div class="product-meta">
-    <h3>
+    <Heading>
       <a href={`/products/${p.slug}`}>{p.name}</a>
-    </h3>
-    <Price value={p.price} />
+    </Heading>
+    <span>
+      {typeof p.price === 'number' ? price(p.price) : 'Price to be confirmed'}
+    </span>
   </div>
+  <p>{descriptor(p)}</p>
   <p class="muted">
-    {availability(p.availability)}
-    {p.demo && ' · Demonstration'}
+    {p.reviewOnly
+      ? 'Draft concept · Not for sale'
+      : `${availability(p.availability)}${p.demo ? ' · Fictional demo' : ''}`}
   </p>
 </article>

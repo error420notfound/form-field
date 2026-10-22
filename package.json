@@ -6,7 +6,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": "\u003e=24.0.0 \u003c25"
+    "node": ">=24.0.0 <25"
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",
@@ -18,7 +18,9 @@
     "build": "npm run build --workspaces",
     "seed": "npm run seed -w apps/cms",
     "migrate": "npm run migrate -w apps/cms",
-    "format": "node scripts/run.mjs prettier --write ."
+    "format": "node scripts/run.mjs prettier --write .",
+    "setup:review": "node scripts/upgrade-review.mjs",
+    "test": "node --experimental-strip-types --test scripts/purchase-policy.test.ts"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

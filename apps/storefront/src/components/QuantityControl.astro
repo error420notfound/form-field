@@ -8,6 +8,8 @@ const { value = 1, label = 'Quantity', id = 'quantity' } = Astro.props
     id={id}
     name="quantity"
     type="number"
+    inputmode="numeric"
+    autocomplete="off"
     min="1"
     max="99"
     step="1"

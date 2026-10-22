@@ -9,6 +9,7 @@ const images = (product.gallery || []).map(media).filter(Boolean)
     <>
       <img
         class="gallery-main"
+        fetchpriority="high"
         src={mediaURL(images[0].sizes?.gallery?.url || images[0].url)}
         alt={images[0].alt}
         width="800"
@@ -29,6 +30,7 @@ const images = (product.gallery || []).map(media).filter(Boolean)
                 alt=""
                 width="80"
                 height="90"
+                loading="lazy"
               />
             </button>
           ))}

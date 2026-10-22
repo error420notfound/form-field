@@ -1,71 +1,248 @@
 ---
 import Layout from '../../layouts/Layout.astro'
-import ProductGallery from '../../components/ProductGallery.astro'
 import AddToCart from '../../components/AddToCart.astro'
-import Price from '../../components/Price.astro'
-import { product, availability, type Product } from '../../lib/cms'
-let p: Product | undefined
-let error = ''
+import ProductCard from '../../components/ProductCard.astro'
+import Gallery from '../../components/interactive/Gallery'
+import {
+  product,
+  media,
+  mediaURL,
+  price,
+  availability,
+  type Product,
+} from '../../lib/cms'
+import { art, descriptor, canPurchase } from '../../lib/catalogue'
+let p: Product | undefined,
+  related: Product[] = [],
+  error = ''
 try {
   p = await product(Astro.params.slug!)
-} catch (e) {
-  error = (e as Error).message
+  if (p)
+    related = (p.relatedObjects || [])
+      .filter(
+        (item): item is Product =>
+          typeof item === 'object' &&
+          item.id !== p!.id &&
+          item._status === 'published',
+      )
+      .slice(0, 2)
+} catch {
+  error =
+    'The object’s story is temporarily unavailable. Please try again shortly.'
 }
 if (!p) Astro.response.status = error ? 503 : 404
+const reviewImage = p && art(p)
+const images = p
+  ? reviewImage
+    ? [
+        {
+          src: reviewImage,
+          alt: `Illustrative concept for ${p.name}; not an actual product design`,
+          placeholder: true,
+        },
+      ]
+    : (p.gallery || [])
+        .map(media)
+        .filter((m) => m !== null)
+        .map((m) => ({
+          src: mediaURL(m.sizes?.gallery?.url || m.url),
+          alt: m.alt,
+          placeholder: !!m.placeholder,
+        }))
+  : []
+const chapters = p?.story || []
+const facts = p
+  ? [
+      ['Materials', p.materials],
+      ['Dimensions', p.dimensions],
+      ['Care', p.care],
+      ['What’s included', p.included],
+    ].filter(([, v]) => v)
+  : []
 ---
 
-<Layout title={p?.name || 'Product unavailable'}>
+<Layout title={p?.name || 'Object unavailable'} theme={p?.themeId}>
   {p ? (
-    <section class="section">
-      <a class="back" href="/shop">
-        ← All objects
-      </a>
-      <div class="product-detail">
-        <ProductGallery product={p} />
-        <div class="product-info">
-          {p.demo && <p class="muted">Fictional demonstration product</p>}
-          <h1>{p.name}</h1>
-          <div class="price-row">
-            <Price value={p.price} />
-            <span class="muted">{availability(p.availability)}</span>
+    <>
+      <nav class="product-bar" aria-label={`${p.name} story navigation`}>
+        <a href="#overview">{p.name}</a>
+        <div>
+          <a href="#details" class="product-detail-link">
+            Details
+          </a>
+          <a href="#practical" class="product-detail-link">
+            Practical information
+          </a>
+          <a class="text-link" href="#purchase">
+            {canPurchase(p) ? 'Choose options' : 'Availability'}
+          </a>
+        </div>
+      </nav>
+      <section class="product-intro section" id="overview">
+        <div class="story-title">
+          <h1>
+            {p.name}
+            <span class="brand-dot" aria-hidden="true">
+              .
+            </span>
+          </h1>
+          <p class="lead">
+            {descriptor(p)}
+            {p.reviewOnly && ' · Draft concept'}
+          </p>
+        </div>
+        <div class="story-hero">
+          <div class="story-hero-copy">
+            <p>{p.shortDescription}</p>
+            {p.reviewOnly ? (
+              <p class="draft-note">
+                An illustrative concept for local review. The pictured object
+                does not represent a confirmed form+field design.
+              </p>
+            ) : (
+              <>
+                <p>
+                  {typeof p.price === 'number'
+                    ? price(p.price)
+                    : 'Price to be confirmed'}{' '}
+                  · {availability(p.availability)}
+                </p>
+                {p.demo && (
+                  <p class="draft-note">Fictional demonstration product.</p>
+                )}
+              </>
+            )}
+            <a class="text-link" href="#purchase">
+              {canPurchase(p) ? 'Choose options' : 'View availability'}
+            </a>
           </div>
-          <p class="lead">{p.shortDescription}</p>
-          <AddToCart product={p} />
-          <p class="prose">{p.description}</p>
-          {p.features?.length ? (
-            <section class="details">
-              <h2>Design details</h2>
-              {p.features.map((f) => (
+          <Gallery images={images} name={p.name} client:load />
+        </div>
+      </section>
+      <div id="details">
+        {chapters.length ? (
+          chapters.map((chapter, i) => {
+            const m = media(chapter.media)
+            return (
+              <section
+                class:list={[
+                  'editorial-section',
+                  'story-chapter',
+                  { 'story-chapter--reverse': i % 2 !== 0 },
+                ]}
+                id={`chapter-${chapter.chapterId}`}
+              >
+                <h2>{chapter.heading}</h2>
                 <div>
+                  <p>{chapter.copy}</p>
+                  {m && (
+                    <figure>
+                      <img
+                        src={mediaURL(m.sizes?.gallery?.url || m.url)}
+                        alt={m.alt}
+                        width="1200"
+                        height="800"
+                        loading="lazy"
+                      />
+                      {m.placeholder && (
+                        <figcaption>Illustrative placeholder</figcaption>
+                      )}
+                    </figure>
+                  )}
+                </div>
+              </section>
+            )
+          })
+        ) : (
+          <section class="editorial-section">
+            <h2>A closer look.</h2>
+            <div>
+              <p class="prose">{p.description}</p>
+              {p.features?.map((f) => (
+                <section class="detail-note">
                   <h3>{f.title}</h3>
                   <p>{f.description}</p>
-                </div>
+                </section>
               ))}
-            </section>
-          ) : null}
-          {[
-            ['Materials', p.materials],
-            ['Dimensions', p.dimensions],
-            ['Care', p.care],
-            ["What's included", p.included],
-          ]
-            .filter(([, value]) => value)
-            .map(([heading, value]) => (
-              <section class="details">
-                <h2>{heading}</h2>
-                <p class="prose">{value}</p>
-              </section>
-            ))}
-        </div>
+            </div>
+          </section>
+        )}
       </div>
-    </section>
+      <section class="practical-section section" id="practical">
+        <h2>Practical information.</h2>
+        {facts.length ? (
+          <dl class="specifications">
+            {facts.map(([label, value]) => (
+              <div>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <div>
+            <h3>Details to be confirmed.</h3>
+            <p>
+              Specifications, materials, included items and care information
+              have not yet been supplied.
+            </p>
+          </div>
+        )}
+      </section>
+      <section class="purchase-section section" id="purchase">
+        <div>
+          <p class="section-label">
+            {canPurchase(p) ? 'Your selection' : 'Availability'}
+          </p>
+          <h2>{canPurchase(p) ? p.name : 'Not available to purchase.'}</h2>
+          <p>
+            {typeof p.price === 'number'
+              ? price(p.price)
+              : 'Price to be confirmed.'}
+          </p>
+          {p.reviewOnly && (
+            <p>
+              Product specifications and availability are not yet confirmed.
+            </p>
+          )}
+        </div>
+        <div>
+          <AddToCart product={p} />
+          <p class="muted">
+            {canPurchase(p)
+              ? 'Local demonstration only. No payment or order is submitted.'
+              : 'This concept cannot be added to your bag.'}
+          </p>
+          <a class="text-link" href="/support">
+            Delivery and returns information
+          </a>
+        </div>
+      </section>
+      {related.length > 0 && (
+        <section class="section related-section">
+          <div class="section-heading">
+            <h2>Another familiar desire.</h2>
+            <a class="text-link" href="/shop">
+              All objects
+            </a>
+          </div>
+          <div class="related-grid">
+            {related.map((item) => (
+              <ProductCard product={item} headingLevel={3} />
+            ))}
+          </div>
+        </section>
+      )}
+    </>
   ) : (
-    <section class="section">
-      <h1>{error ? 'The CMS is unavailable' : 'Object not found'}</h1>
-      <p class="notice">
-        {error || 'This product may have been removed or is not published.'}
+    <section class="section error-state">
+      <h1>{error ? 'A moment, please.' : 'Object not found.'}</h1>
+      <p role={error ? 'alert' : undefined}>
+        {error || 'This object may have been removed or is not published.'}
       </p>
-      <a href="/shop">Back to catalogue</a>
+      <a class="text-link" href="/shop">
+        Back to Objects
+      </a>
     </section>
   )}
 </Layout>

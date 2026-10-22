@@ -1,51 +1,88 @@
 ---
 import { settings } from '../lib/cms'
+import { themeFor } from '../lib/catalogue'
 import SiteHeader from '../components/SiteHeader.astro'
 import SiteFooter from '../components/SiteFooter.astro'
 import '../styles/global.css'
-const { title } = Astro.props
+import themeManifest from '../data/themes.json'
+import facultyFont from '@fontsource/faculty-glyphic/files/faculty-glyphic-latin-400-normal.woff2?url'
+import geistFont from '@fontsource/geist/files/geist-latin-400-normal.woff2?url'
+const { title, theme = 'neutral' } = Astro.props
 let store
-let error = ''
 try {
   store = await settings()
-} catch (e) {
-  error = (e as Error).message
+} catch {
+  /* Page-level content reports CMS failures. */
 }
-const name = store?.storeName || 'Design studio'
+const rootTheme = themeFor(theme)
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme={rootTheme}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content={themeManifest.themes[rootTheme].canvas} />
+    <link
+      rel="preload"
+      href={facultyFont}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href={geistFont}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta
       name="description"
-      content={store?.introduction || 'Independent design studio catalogue'}
+      content="form+field. An evolving catalogue of objects shaped by familiar desires."
     />
-    <title>{title} · {name}</title>
+    <title>{title} · form+field</title>
   </head>
   <body>
     <a class="skip" href="#main">
       Skip to content
     </a>
-    <SiteHeader name={name} />
+    <SiteHeader />
     <main id="main">
-      {error && (
-        <aside class="notice" role="alert">
-          {error}
-        </aside>
-      )}
       <slot />
     </main>
-    <SiteFooter
-      name={name}
-      introduction={store?.introduction}
-      email={store?.contactEmail}
-    />
+    <SiteFooter email={store?.contactEmail} />
     <script>
-      import '../scripts/cart'
+      const measure = () => {
+        const header = document.querySelector('.site-header')
+        const bar = document.querySelector('.product-bar')
+        document.documentElement.style.setProperty(
+          '--header-height',
+          (header?.getBoundingClientRect().height || 64) + 'px',
+        )
+        document.documentElement.style.setProperty(
+          '--product-bar-height',
+          (bar?.getBoundingClientRect().height || 0) + 'px',
+        )
+      }
+      const observer = new ResizeObserver(measure)
+      document
+        .querySelectorAll('.site-header,.product-bar')
+        .forEach((node) => observer.observe(node))
+      measure()
+      window.addEventListener('pagehide', () => observer.disconnect(), {
+        once: true,
+      })
+      window.addEventListener('pageshow', () => {
+        document
+          .querySelectorAll('.site-header,.product-bar')
+          .forEach((node) => observer.observe(node))
+        measure()
+      })
     </script>
   </body>
 </html>

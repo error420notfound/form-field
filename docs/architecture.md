@@ -1,29 +1,31 @@
 # Local architecture
 
-## Responsibilities
+Payload in `apps/cms` owns content, administrator access, drafts, SQLite and uploads. The Next.js application hosts its admin and REST routes. Astro in `apps/storefront` renders the storefront per request through the standalone Node adapter. It fetches published content through REST without administrator credentials; it never accesses SQLite directly.
 
-`apps/cms` runs Payload within its supported Next.js HTTP and admin application. Payload owns authentication, content, generated TypeScript types, local SQLite persistence through `@payloadcms/db-sqlite`, and image uploads/resizing through Sharp. No customer-facing pages are built in Next.js.
+## Rendering and UI
 
-`apps/storefront` runs Astro 7.4 with the official Node adapter in standalone server mode. It renders HTML per request, uses plain CSS tokens, and enhances gallery, category and cart controls with small TypeScript scripts. It imports Payload types only; it does not initialize Payload or access SQLite directly.
+Narrative content, navigation links and catalogue modules are static Astro HTML. React islands supply shadcn/Radix sheets, gallery dialogs, support accordions, purchase controls, Bag views and checkout fields. Controls that need a common dialog context remain in one island. Semantic CSS roles centrally style owned shadcn source. Its generated utility imports resolve to `lib/utils`; upstream control glyphs use the local Keyline adapter. Fonts are bundled locally. Static story reading remains available without JavaScript; Bag editing requires it.
 
-## Content flow and interfaces
+The server writes an approved `data-theme` on the document root. Shared routes use neutral; product pages resolve an approved theme ID against the pinned palette snapshot. Unknown theme IDs or mismatched pinned hues log an editorial error and resolve to neutral. CSS defines complete functional colour pairs; body-mounted portals inherit them. Normal full-document navigation and browser history preserve server-selected themes. ResizeObserver measures sticky chrome so anchor offsets also adapt to text wrapping.
 
-Administrator → Payload admin → SQLite/uploads → public REST API → Astro server → HTML. `src/lib/cms.ts` in the storefront centralizes API requests, timeout/error messages, generated types, price formatting, and relative media URL resolution. Requests carry no administrator cookies or credentials and do not cache content. All brand-bearing shared components receive Store Settings values.
+## Content and review objects
 
-The Products collection contains descriptive text, Media and Category relationships, integer paise prices, INR, availability, optional specifications, feature items, featured/demo flags and Payload draft versions. Store Settings is the central editable store identity and homepage copy. Payload generates the REST endpoints and types from this configuration.
+Products retain their original IDs, gallery, description, specifications, feature items, price/currency and availability. Optional additions cover descriptor, editorial order, broad/paired feature size, theme ID, story chapters and explicitly selected related objects. Price is nullable, purchase eligibility is separate, and `reviewOnly` independently prevents purchasing. Existing records default to their previous eligibility. Only published stories are publicly fetched. Prices are integer paise in INR.
 
-Public readers see only published products. CMS administrators can mutate all content, upload media, and inspect drafts and user records. Payload's first-user setup is the sole initial administrator bootstrap. CORS is restricted to the configured storefront origin; it is not authentication. Versions are administrator-only. Media and categories are public; unpublished image files are not a private asset vault.
+The four review concepts are ordinary published CMS records marked `demo` and `reviewOnly`. Their names, draft copy and missing facts are explicit. The homepage displays review concepts and non-demo published products; legacy fictional demo objects remain discoverable in Objects. Related objects are never inferred from arbitrary record order. An idempotent seed and media attachment command preserve existing slugs and galleries. Labelled local fallback art is limited to known review slugs and yields to supplied non-placeholder imagery. Broad homepage references have separate wide and mobile compositions.
 
-## Cart and checkout
+Media adds provenance, placeholder flags and mobile focal points alongside Payload's built-in desktop focal coordinates. Generated review assets are identified as illustrative concepts, with provenance and licences under `docs/design` and `docs/licences`. No image represents a final product specification.
 
-localStorage key `studio-cart-v1` contains only `{ id, quantity }` selections. Astro's POST `/api/cart` accepts at most 100 selections with positive numeric IDs and integer quantities from 1–99, and resolves current published details through Payload REST. The response contains display lines, availability, formatted prices, normalized image URLs and an indicative subtotal. Unknown products are represented as unavailable lines; unavailable items are excluded from totals. API failures preserve local selections and expose a retry control.
+## Bag and checkout
 
-The cart endpoint has no order side effects. Checkout uses the same resolution, a disabled payment button, and an address layout form with submission prevented and no persistence handler. No payment or address data is sent to the CMS. Browser autofill remains controlled by the user's browser.
+`lib/bag.ts` owns the single browser state boundary across islands. `studio-cart-v1` continues to store only `{ id, quantity }`. Initialization validates IDs and quantities, removes duplicates and caps selections. Subscribers update header counts immediately; storage events synchronize tabs. Storage failure retains current-page selections and explains their limited lifetime.
 
-## Persistence, schema and limitations
+POST `/api/cart` validates at most 100 selections and quantities 1–99, then resolves current published details. Shared purchase policy excludes unknown prices, unavailable objects, disabled purchase eligibility and review concepts. Removed or unpublished IDs remain explanatory lines and cannot contribute to subtotals. Zero is an explicit supplied price, not a fallback for unknowns. Price and availability refresh before summaries display. Request cancellation prevents stale responses; errors retain selections and offer Retry. Removal offers Undo.
 
-SQLite data and uploads are outside generated output. Back up the database and uploads as a matching set while processes are stopped; see README. Schema evolution uses Payload's supported migration tooling. Changing database adapters requires planning data migration rather than simply changing an environment variable.
+Checkout is a local layout demonstration with editable, non-submitting address fields, an indicative Bag summary and a disabled payment action. No address is stored, no payment-provider interface is simulated and no order is created. Shipping, taxes, orders, variants, inventory reservations, customer accounts and deployment remain deferred.
 
-This foundation intentionally has no checkout authority, payment processing, orders, stock reservations, variants, discounts, customer auth or deployment infrastructure. Catalogue queries currently cap results at 100; pagination is a future addition. Product descriptions are plain multiline text, rendered escaped by Astro. Seed illustrations are authored SVG scenes rasterized locally to PNG so Payload generates useful image sizes. Seed content has no independent storefront catalogue.
+## Local persistence and upgrades
 
-Official references: [Payload installation](https://payloadcms.com/docs/getting-started/installation), [SQLite](https://payloadcms.com/docs/database/sqlite), [REST](https://payloadcms.com/docs/rest-api/overview), [drafts](https://payloadcms.com/docs/versions/drafts), [Astro Node adapter](https://docs.astro.build/en/guides/integrations-guide/node/).
+Back up database and uploads together while services are stopped. `npm run setup:review` stages additive fields before relaxing the prior SQLite required-price constraint, then creates missing review records and attaches media. It is an explicit local development upgrade, not a replacement for Payload's supported production migration workflow. Payload type generation and the configured TypeScript admin import map are checked into source. Environment files and local data stay outside Git.
+
+Catalogue requests currently cap at 100 objects. Add pagination before expanding beyond that. Actual product facts, approved palettes and confirmed policies are still editorial work; the local review cannot establish readiness for live commerce.

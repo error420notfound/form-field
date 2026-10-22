@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-10-22",
+  "notice": "AI-generated conceptual references for local review, not photographs of manufactured form+field products. No third-party stock assets are used. Do not publish as actual product imagery.",
+  "assets": [
+    {
+      "id": "pourframe",
+      "localPath": "apps/storefront/public/images/pourframe.webp",
+      "responsivePath": "apps/storefront/public/images/pourframe-640.webp",
+      "sourcePage": "docs/design/asset-provenance.json",
+      "author": "OpenAI Image Gen, directed for this local form+field review",
+      "licenceURL": "https://openai.com/policies/terms-of-use/",
+      "downloadDate": "2026-10-22",
+      "attributionRequired": false,
+      "attribution": "Illustrative placeholder",
+      "role": "Illustrative unverified category concept",
+      "placeholder": true,
+      "homepagePath": "apps/storefront/public/images/pourframe-wide.webp",
+      "homepageResponsivePath": "apps/storefront/public/images/pourframe-wide-640.webp",
+      "note": "Image Gen reframing of the same illustrative concept for a wide feature."
+    },
+    {
+      "id": "lighting",
+      "localPath": "apps/storefront/public/images/lighting.webp",
+      "responsivePath": "apps/storefront/public/images/lighting-640.webp",
+      "sourcePage": "docs/design/asset-provenance.json",
+      "author": "OpenAI Image Gen, directed for this local form+field review",
+      "licenceURL": "https://openai.com/policies/terms-of-use/",
+      "downloadDate": "2026-10-22",
+      "attributionRequired": false,
+      "attribution": "Illustrative placeholder",
+      "role": "Illustrative unverified category concept",
+      "placeholder": true,
+      "homepagePath": "apps/storefront/public/images/lighting-wide.webp",
+      "homepageResponsivePath": "apps/storefront/public/images/lighting-wide-640.webp",
+      "note": "Image Gen reframing of the same illustrative concept for a wide feature."
+    },
+    {
+      "id": "keypad",
+      "localPath": "apps/storefront/public/images/keypad.webp",
+      "responsivePath": "apps/storefront/public/images/keypad-640.webp",
+      "sourcePage": "docs/design/asset-provenance.json",
+      "author": "OpenAI Image Gen, directed for this local form+field review",
+      "licenceURL": "https://openai.com/policies/terms-of-use/",
+      "downloadDate": "2026-10-22",
+      "attributionRequired": false,
+      "attribution": "Illustrative placeholder",
+      "role": "Illustrative unverified category concept",
+      "placeholder": true
+    },
+    {
+      "id": "printer",
+      "localPath": "apps/storefront/public/images/printer.webp",
+      "responsivePath": "apps/storefront/public/images/printer-640.webp",
+      "sourcePage": "docs/design/asset-provenance.json",
+      "author": "OpenAI Image Gen, directed for this local form+field review",
+      "licenceURL": "https://openai.com/policies/terms-of-use/",
+      "downloadDate": "2026-10-22",
+      "attributionRequired": false,
+      "attribution": "Illustrative placeholder",
+      "role": "Illustrative unverified category concept",
+      "placeholder": true
+    }
+  ]
+}

@@ -1,17 +1,23 @@
 ---
-const { name, introduction, email } = Astro.props
+const { email } = Astro.props
+const realEmail = email && !email.endsWith('.test') ? email : null
 ---
 
 <footer class="site-footer">
-  <div>
-    <a class="wordmark" href="/">
-      {name}
+  <div class="footer-brand">
+    <a class="wordmark" href="/" translate="no">
+      form+field
     </a>
-    <p>{introduction}</p>
+    <p class="credit">Designed by HS108 in India.</p>
   </div>
-  <div>
-    <a href="/shop">Explore the catalogue</a>
-    {email && <a href={`mailto:${email}`}>{email}</a>}
-    <small>Local studio store · Checkout preview only</small>
+  <nav aria-label="Footer navigation">
+    <a href="/shop">Objects</a>
+    <a href="/about">About</a>
+    <a href="/support">Support</a>
+  </nav>
+  <div class="footer-note">
+    <a href="/cart">Your bag</a>
+    {realEmail && <a href={`mailto:${realEmail}`}>Contact</a>}
+    <p>Local review · Demo checkout</p>
   </div>
 </footer>

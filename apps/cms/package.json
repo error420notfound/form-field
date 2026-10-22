@@ -10,7 +10,9 @@
     "generate:types": "node ../../scripts/run.mjs payload generate:types",
     "seed": "node ../../scripts/run.mjs tsx src/seed.ts",
     "migrate": "node ../../scripts/run.mjs payload migrate",
-    "migrate:create": "node ../../scripts/run.mjs payload migrate:create"
+    "migrate:create": "node ../../scripts/run.mjs payload migrate:create",
+    "seed:review": "node ../../scripts/run.mjs tsx src/seed-review.ts",
+    "media:review": "node ../../scripts/run.mjs tsx src/attach-review-media.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",
