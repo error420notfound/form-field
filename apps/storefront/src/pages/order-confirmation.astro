@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro'
+import OrderConfirmation from '../components/interactive/OrderConfirmation'
+---
+<Layout title="Demo order summary">
+  <section class="section">
+    <h1>Demo order summary<span class="brand-dot" aria-hidden="true">.</span></h1>
+    <OrderConfirmation client:load />
+  </section>
+</Layout>

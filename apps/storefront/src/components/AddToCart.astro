@@ -1,14 +1,16 @@
 ---
 import Purchase from './interactive/Purchase'
 import { canPurchase } from '../lib/catalogue'
+import { stock } from '../lib/cms'
 const { product } = Astro.props
+const inventory = canPurchase(product) ? await stock(product.id) : null
 ---
 
-{canPurchase(product) ? (
+{canPurchase(product) && inventory && !('error' in inventory) && inventory.linked && inventory.available ? (
   <>
     <Purchase id={product.id} name={product.name} client:load />
     <noscript>Enable JavaScript to save an object in your bag.</noscript>
   </>
 ) : (
-  <p class="availability-note">Not available to purchase.</p>
+  <p class="availability-note">{inventory && 'error' in inventory ? 'Inventory is temporarily unavailable.' : inventory && !('error' in inventory) && !inventory.linked ? 'Not yet available to order.' : inventory?.linked && !inventory.available ? 'Out of stock.' : 'Not available to purchase.'}</p>
 )}

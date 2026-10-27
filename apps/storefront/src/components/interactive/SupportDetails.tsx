@@ -26,7 +26,7 @@ export default function SupportDetails() {
         [
           'checkout',
           'About demo checkout',
-          'Your bag is saved in this browser. Checkout fields are for layout review only; addresses are not stored and no payment or order is submitted.',
+          'Your bag is saved in this browser. Local demo checkout saves delivery details and creates an order without collecting payment.',
         ],
       ].map(([id, title, copy]) => (
         <AccordionItem value={id} key={id} id={id}>

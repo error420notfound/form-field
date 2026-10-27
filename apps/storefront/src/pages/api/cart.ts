@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { canPurchase } from '../../lib/catalogue'
-import { products, image, price, availability } from '../../lib/cms'
+import { products, image, price, availability, stock } from '../../lib/cms'
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json()
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
       ? await products(`&where[id][in]=${ids.join(',')}`)
       : []
     let subtotal = 0
-    const lines = body.map((s) => {
+    const lines = await Promise.all(body.map(async (s) => {
       const p = items.find((p) => p.id === s.id)
       if (!p)
         return {
@@ -34,7 +34,8 @@ export const POST: APIRoute = async ({ request }) => {
           purchasable: false,
           name: 'Removed or unpublished product',
         }
-      const purchasable = canPurchase(p)
+      const inventory = await stock(p.id)
+      const purchasable = canPurchase(p) && !('error' in inventory) && inventory.linked && inventory.available && inventory.quantity >= s.quantity
       const total = purchasable ? (p.price ?? 0) * s.quantity : 0
       subtotal += total
       return {
@@ -42,12 +43,12 @@ export const POST: APIRoute = async ({ request }) => {
         name: p.name,
         url: `/products/${p.slug}`,
         image: image(p),
-        availability: availability(p.availability),
+        availability: 'error' in inventory ? 'Inventory temporarily unavailable' : !inventory.linked ? 'Not yet available to order' : inventory.quantity < s.quantity ? (inventory.quantity === 0 ? 'Out of stock' : 'Requested quantity unavailable') : availability(p.availability),
         purchasable,
         unitPrice: typeof p.price === 'number' ? price(p.price) : null,
         lineTotal: price(total),
       }
-    })
+    }))
     return Response.json(
       { lines, subtotal: price(subtotal) },
       { headers: { 'Cache-Control': 'no-store' } },

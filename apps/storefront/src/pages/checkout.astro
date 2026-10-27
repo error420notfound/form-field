@@ -4,24 +4,24 @@ import CheckoutPreview from '../components/interactive/CheckoutPreview'
 import BagView from '../components/interactive/BagView'
 ---
 
-<Layout title="Checkout preview">
+<Layout title="Demo checkout">
   <section class="section checkout-page">
     <div class="page-heading">
       <h1>
-        Checkout preview
+        Demo checkout
         <span class="brand-dot" aria-hidden="true">
           .
         </span>
       </h1>
       <p class="notice">
-        Local demonstration. No payment or order is submitted.
+        Local demonstration. This creates an Odoo order without taking payment.
       </p>
     </div>
     <div class="checkout-layout">
       <div>
-        <h2>Delivery address preview</h2>
+        <h2>Delivery details</h2>
         <p class="muted">
-          For layout review only. Address information is not submitted or saved.
+          These details are saved with the demo order in Payload and Odoo.
         </p>
         <CheckoutPreview client:load />
       </div>

@@ -16,6 +16,7 @@ export default function HeaderActions() {
   const [menuOpen, setMenuOpen] = useState(false)
   return (
     <div className="header-actions">
+      <a className="header-button" href="/account">Account</a>
       <Sheet>
         <SheetTrigger asChild>
           <Button

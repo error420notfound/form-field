@@ -67,7 +67,7 @@ Payload pushes schema changes during development. Back up before changing schema
 
 ## Intentionally deferred
 
-Payment, order creation, taxes, shipping, customer accounts, variants, inventory reservations, discounts, and deployment are absent. The cart stores only IDs and quantities in localStorage, refreshes product details from Payload, and caps quantities at 99. Removed/unpublished/unavailable products are excluded from totals. Totals are local previews, not transaction values. Checkout has no submission or payment fields and does not persist addresses.
+Real payment, taxes, shipping rates, variants, discounts, and deployment are absent. Local customer accounts use Payload authentication; email verification and password recovery are not configured. Demo checkout requires a customer account, creates Odoo sales orders, checks reservations and stores order and delivery details in Payload. It collects no payment and must not be used for real orders. See [local Odoo workflow](docs/odoo-local-workflow.md). The cart stores IDs and quantities in localStorage and refreshes product details and availability.
 
 The initial catalogue fetch is limited to 100 products and 100 categories; add pagination before expanding beyond that. Public uploads are accessible by URL and should contain only publishable product imagery. Fonts and review imagery are served locally; no external font or image requests are required. See [architecture](docs/architecture.md).
 
@@ -86,7 +86,7 @@ The idempotent review setup uses two additive SQLite upgrade stages, creates fou
 
 The homepage leads with PourFrame, Lighting, Macro keypad and Thermal printer. Existing fictional demo records remain in Objects and can exercise Bag interactions. No prices, specifications or shipping promises are invented for the four review objects. Names other than PourFrame, colour assignments, copy and images remain drafts. Related objects appear only when explicitly selected in Payload.
 
-Routes: Home, Objects (`/shop`), product stories, About, Support, Bag (`/cart`) and demo checkout. The header Bag opens a themed sheet; the standalone Bag and checkout use the neutral theme. All Bag controls share the existing `studio-cart-v1` storage contract. Checkout has no submitting form, payment fields or address persistence.
+Routes: Home, Objects (`/shop`), product stories, About, Support, Bag (`/cart`) and demo checkout. The header Bag opens a themed sheet; the standalone Bag and checkout use the neutral theme. All Bag controls share the existing `studio-cart-v1` storage contract. Demo checkout submits an order without payment in local development.
 
 Faculty Glyphic and Geist are self-hosted through Fontsource. Font and Keyline licences are retained in `docs/licences`. Review asset provenance is in `docs/design/asset-provenance.json`; these AI-generated references are expressly not product photography or confirmed designs. Chroma snapshots and source revision are under `apps/storefront/src/data`.
 

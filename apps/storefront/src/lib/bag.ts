@@ -106,6 +106,10 @@ export function removeFromBag(id: number) {
   save(selections.filter((s) => s.id !== id))
   return found ? { selection: found, index } : undefined
 }
+export function clearBag() {
+  initialize()
+  save([])
+}
 export function restoreToBag(removed: { selection: Selection; index: number }) {
   if (
     !selections.some((s) => s.id === removed.selection.id) &&

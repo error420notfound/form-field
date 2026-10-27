@@ -31,6 +31,16 @@ export async function request<T>(path: string): Promise<T> {
   }
 }
 export const settings = () => request<StoreSetting>('globals/store-settings')
+export type Stock = { linked: false } | { linked: true; available: boolean; quantity: number } | { error: true }
+export async function stock(id: number): Promise<Stock> {
+  try {
+    const response = await fetch(`${base}/api/stock?id=${id}`, { signal: AbortSignal.timeout(10000), cache: 'no-store' })
+    if (!response.ok) return { error: true }
+    return await response.json() as Stock
+  } catch {
+    return { error: true }
+  }
+}
 export const categories = () =>
   request<{ docs: Category[] }>('categories?limit=100&sort=name')
 export async function products(query = '') {

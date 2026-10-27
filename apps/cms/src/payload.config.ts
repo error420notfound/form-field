@@ -8,6 +8,7 @@ import {
 } from 'payload'
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import sharp from 'sharp'
+import { linkedOdooProduct } from './odoo-product'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const admin = ({ req }: { req: PayloadRequest }) =>
   req.user?.collection === 'users'
@@ -17,6 +18,18 @@ const products: CollectionConfig = {
   slug: 'products',
   admin: { useAsTitle: 'name' },
   versions: { drafts: true },
+  hooks: {
+    afterRead: [async ({ doc }) => {
+      try {
+        const odoo = await linkedOdooProduct(doc.id)
+        if (odoo) doc.price = odoo.price
+      } catch (error) {
+        console.error('Could not load Odoo product price:', error instanceof Error ? error.message : 'Unknown error')
+        doc.price = null
+      }
+      return doc
+    }],
+  },
   access: {
     ...writable,
     read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }),
@@ -70,6 +83,7 @@ const products: CollectionConfig = {
     {
       name: 'price',
       type: 'number',
+      admin: { description: 'For linked products, the displayed price comes from Odoo. Edit it in Odoo.' },
       required: process.env.FORM_FIELD_ADDITIVE_SCHEMA === '1',
       min: 0,
       validate: (value: unknown) =>
@@ -141,6 +155,23 @@ export default buildConfig({
       fields: [],
     },
     {
+      slug: 'customers',
+      auth: { tokenExpiration: 60 * 60 * 24, maxLoginAttempts: 5, lockTime: 600000 },
+      admin: { useAsTitle: 'email', defaultColumns: ['email', 'name', 'odooSyncStatus'] },
+      access: { ...writable, read: admin, admin },
+      fields: [
+        { name: 'name', type: 'text', required: true },
+        { name: 'address', type: 'text' },
+        { name: 'apartment', type: 'text' },
+        { name: 'city', type: 'text' },
+        { name: 'postalCode', type: 'text' },
+        { name: 'state', type: 'text' },
+        { name: 'country', type: 'text' },
+        { name: 'odooCustomerId', type: 'number', admin: { readOnly: true } },
+        { name: 'odooSyncStatus', type: 'select', defaultValue: 'pending', options: ['pending', 'synced'], admin: { readOnly: true } },
+      ],
+    },
+    {
       slug: 'media',
       access: { ...writable, read: publicRead },
       upload: {
@@ -188,6 +219,25 @@ export default buildConfig({
       ],
     },
     products,
+    {
+      slug: 'orders',
+      admin: { useAsTitle: 'reference', defaultColumns: ['reference', 'status', 'paymentStatus', 'odooReference', 'createdAt'] },
+      access: { ...writable, read: admin },
+      fields: [
+        { name: 'reference', type: 'text', required: true, unique: true, index: true },
+        { name: 'account', type: 'relationship', relationTo: 'customers', index: true, admin: { description: 'Empty for older guest orders.' } },
+        { name: 'status', type: 'select', required: true, defaultValue: 'pending', options: ['pending', 'confirmed', 'review'] },
+        { name: 'customer', type: 'json', required: true },
+        { name: 'items', type: 'json', required: true },
+        { name: 'subtotal', type: 'number', required: true },
+        { name: 'paymentMethod', type: 'select', options: [{ label: 'Demo payment (simulated)', value: 'demo' }], admin: { description: 'Local simulation only; no payment is collected.' } },
+        { name: 'paymentStatus', type: 'select', options: [{ label: 'Simulation pending', value: 'pending' }, { label: 'Simulated successful', value: 'simulated-success' }], admin: { description: 'A simulated result, not a real payment.' } },
+        { name: 'odooOrderId', type: 'number' },
+        { name: 'odooCustomerId', type: 'number', admin: { description: 'Odoo customer holding this order and its purchase history.' } },
+        { name: 'odooReference', type: 'text' },
+        { name: 'note', type: 'textarea' },
+      ],
+    },
   ],
   globals: [
     {

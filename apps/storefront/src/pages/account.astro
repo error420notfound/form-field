@@ -1,0 +1,7 @@
+---
+import Layout from '../layouts/Layout.astro'
+import CustomerAccount from '../components/interactive/CustomerAccount'
+---
+<Layout title="Your account">
+  <section class="section"><h1>Your account<span class="brand-dot" aria-hidden="true">.</span></h1><CustomerAccount client:load /></section>
+</Layout>

@@ -221,12 +221,11 @@ export default function BagView({
                 <strong>{result?.subtotal}</strong>
               </div>
               <p className="muted">
-                Local preview. Tax, shipping and payment are not configured.
-                This is not a final payable total.
+                Demo subtotal. Tax, shipping and payment are not configured.
               </p>
               {!preview && (
                 <Button asChild>
-                  <a href="/checkout">Continue to checkout preview</a>
+                  <a href="/checkout">Continue to demo checkout</a>
                 </Button>
               )}
             </div>

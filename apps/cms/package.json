@@ -12,7 +12,8 @@
     "migrate": "node ../../scripts/run.mjs payload migrate",
     "migrate:create": "node ../../scripts/run.mjs payload migrate:create",
     "seed:review": "node ../../scripts/run.mjs tsx src/seed-review.ts",
-    "media:review": "node ../../scripts/run.mjs tsx src/attach-review-media.ts"
+    "media:review": "node ../../scripts/run.mjs tsx src/attach-review-media.ts",
+    "check:odoo": "node ../../scripts/check-odoo.mjs"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",
