@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const payload = await getPayload({ config })
     const product = await payload.findByID({ collection: 'products', id, depth: 0, overrideAccess: false, disableErrors: true })
-    if (!product || product._status !== 'published' || product.reviewOnly || product.purchaseEligible === false || product.availability !== 'available') return Response.json({ error: 'Product unavailable.' }, { status: 404 })
+    if (!product || product.medusaProductId || product._status !== 'published' || product.reviewOnly || product.purchaseEligible === false || product.availability !== 'available') return Response.json({ error: 'Product unavailable for the demo bag.' }, { status: 404 })
     const result = await linkedOdooConfigurations(id)
     return Response.json(result ? { linked: true, ...result } : { linked: false }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {

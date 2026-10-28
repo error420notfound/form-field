@@ -19,4 +19,7 @@ const child = spawn(
   [path.resolve(path.dirname(file), bin), ...args],
   { stdio: 'inherit', env: process.env },
 )
-child.on('exit', (code) => process.exit(code ?? 1))
+let stopping = false
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { stopping = true; child.kill(signal) })
+child.on('error', (error) => { console.error(error.message); process.exitCode = 1 })
+child.on('exit', (code) => process.exit(stopping ? 0 : code ?? 1))

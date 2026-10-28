@@ -5,6 +5,7 @@ import * as migration_20261028_000003_homepage_text_placement from './20261028_0
 import * as migration_20261028_000004_upsell_products from './20261028_000004_upsell_products';
 import * as migration_20261028_123154_commerce_dashboard from './20261028_123154_commerce_dashboard';
 import * as migration_20261028_130745_management_platform from './20261028_130745_management_platform';
+import * as migration_20261028_000005_medusa_product_link from './20261028_000005_medusa_product_link';
 
 export const migrations = [
   {
@@ -42,4 +43,5 @@ export const migrations = [
     down: migration_20261028_130745_management_platform.down,
     name: '20261028_130745_management_platform'
   },
+  { up: migration_20261028_000005_medusa_product_link.up, down: migration_20261028_000005_medusa_product_link.down, name: '20261028_000005_medusa_product_link' },
 ];

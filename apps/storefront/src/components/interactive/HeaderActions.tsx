@@ -10,13 +10,16 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import BagView from './BagView'
+import { useCommerceCart } from '@/lib/commerce/browser-cart'
 export default function HeaderActions({ links = [{url:"/shop",label:"Objects"},{url:"/about",label:"About"},{url:"/support",label:"Support"}] }: { links?: {url:string;label:string}[] }) {
   const { items } = useBag()
+  const commerce = useCommerceCart()
   const count = items.reduce((sum, s) => sum + s.quantity, 0)
   const [menuOpen, setMenuOpen] = useState(false)
   return (
     <div className="header-actions">
       <a className="header-button" href="/account">Account</a>
+      <a className="header-button commerce-bag-link" href="/commerce/cart" aria-label={`Commerce bag, ${commerce.cart?.count || 0} items`}>Commerce <span aria-live="polite">({commerce.cart?.count || 0})</span></a>
       <Sheet>
         <SheetTrigger asChild>
           <Button
@@ -31,13 +34,14 @@ export default function HeaderActions({ links = [{url:"/shop",label:"Objects"},{
           <SheetHeader>
             <SheetTitle>Your bag</SheetTitle>
             <SheetDescription>
-              Objects you’re considering. Saved in this browser.
+              Demo bag · saved in this browser. Commerce-enabled objects use a separate bag.
             </SheetDescription>
           </SheetHeader>
           <BagView compact />
           <a className="text-link" href="/cart">
             View full bag
           </a>
+          <a className="text-link" href="/commerce/cart">View commerce bag</a>
         </SheetContent>
       </Sheet>
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -52,7 +56,7 @@ export default function HeaderActions({ links = [{url:"/shop",label:"Objects"},{
             <SheetDescription>Explore form+field</SheetDescription>
           </SheetHeader>
           <nav aria-label="Mobile navigation">
-            {[{url:'/',label:'Home'}, ...links, {url:'/cart',label:'Bag'}].map(({url,label}) => (
+            {[{url:'/',label:'Home'}, ...links, {url:'/account',label:'Account'}, {url:'/cart',label:'Demo bag'}, {url:'/commerce/cart',label:'Commerce bag'}].map(({url,label}) => (
               <a key={`${url}-${label}`} href={url} onClick={() => setMenuOpen(false)}>{label}</a>
             ))}
           </nav>

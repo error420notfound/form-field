@@ -20,12 +20,27 @@
     "migrate": "npm run migrate -w apps/cms",
     "format": "node scripts/run.mjs prettier --write .",
     "setup:review": "node scripts/upgrade-review.mjs",
-    "test": "node --import tsx --test scripts/purchase-policy.test.ts scripts/configurator.test.ts scripts/bag-variants.test.ts scripts/order-quote.test.ts scripts/cart-resolution.test.ts scripts/upsell.test.ts scripts/commerce-report.test.ts scripts/access.test.ts"
+    "test": "node --import tsx --test scripts/purchase-policy.test.ts scripts/configurator.test.ts scripts/bag-variants.test.ts scripts/order-quote.test.ts scripts/cart-resolution.test.ts scripts/upsell.test.ts scripts/commerce-report.test.ts scripts/access.test.ts scripts/medusa-policy.test.ts",
+    "setup:commerce": "node scripts/setup-commerce.mjs",
+    "configure:commerce": "node scripts/configure-commerce.mjs",
+    "dev:commerce": "npm run dev -w apps/commerce",
+    "dev:db": "node scripts/postgres.mjs",
+    "db:stop": "node scripts/postgres.mjs stop",
+    "dev:all": "node scripts/dev-all.mjs",
+    "migrate:commerce": "npm run migrate -w apps/commerce",
+    "setup:store": "npm run setup:store -w apps/commerce",
+    "seed:medusa-fixture": "npm run seed:fixture -w apps/commerce",
+    "seed:medusa-editorial": "npm run seed:medusa-fixture -w apps/cms",
+    "setup:postgres": "node scripts/install-local-postgres.mjs",
+    "test:commerce": "node scripts/medusa-integration.mjs",
+    "setup:medusa-admin": "node scripts/setup-medusa-admin.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   }
 }

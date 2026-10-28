@@ -4,6 +4,24 @@
 @import '@fontsource/geist/latin-500.css';
 @import 'tw-animate-css';
 
+.commerce-bag { display: grid; gap: 24px; max-width: 960px; }
+.commerce-line { display: grid; grid-template-columns: 1fr auto; gap: 24px; padding-block: 24px; border-bottom: 1px solid var(--border); }
+.commerce-line h2 { font-family: var(--font-body); font-size: 22px; letter-spacing: normal; }
+.commerce-line-controls { display: flex; align-items: end; gap: 12px; }
+.commerce-line-controls [data-slot='field'] { max-width: 140px; }
+.commerce-line-controls [data-slot='button'] { min-height: 44px; }
+.commerce-totals { display: grid; gap: 12px; max-width: 480px; }
+.commerce-totals > div { display: flex; justify-content: space-between; gap: 24px; }
+.commerce-purchase select { width: 100%; min-height: 48px; padding: 10px; border: 1px solid var(--input); border-radius: 6px; color: var(--foreground); background: var(--card); }
+.commerce-purchase { max-width: 480px; }
+.header-actions .commerce-bag-link { font-size: 14px; white-space: nowrap; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding-inline: 8px; }
+@media (max-width: 767px) {
+  .header-actions > a[href='/account'] { display: none; }
+  .header-actions .commerce-bag-link { font-size: 12px; padding-inline: 4px; }
+  .commerce-line { grid-template-columns: 1fr; }
+  .commerce-line-controls { flex-wrap: wrap; align-items: center; }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

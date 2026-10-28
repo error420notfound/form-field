@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import CommerceBag from '../../components/interactive/CommerceBag'
+Astro.response.headers.set('Cache-Control', 'private, no-store')
+---
+<Layout title="Your commerce bag">
+  <section class="section cart-page">
+    <div class="page-heading"><h1>Your commerce bag<span class="brand-dot" aria-hidden="true">.</span></h1><p>This bag holds commerce-enabled objects. Your existing demo bag is saved separately.</p></div>
+    <CommerceBag client:load />
+    <noscript>Enable JavaScript to view and update your commerce bag.</noscript>
+  </section>
+</Layout>

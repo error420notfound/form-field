@@ -1,4 +1,5 @@
 import { isLocalAppleDemo } from '../../../cms/src/local-apple-demo'
+import { medusaFixtureSlug } from '../../../cms/src/medusa-fixture'
 import type {
   Product,
   Media,
@@ -50,7 +51,7 @@ export async function products(query = '') {
     await request<{ docs: Product[] }>(
       `products?depth=1&limit=100&sort=name&where[_status][equals]=published${query}`,
     )
-  ).docs.filter((p) => import.meta.env.DEV || !isLocalAppleDemo(p.slug))
+  ).docs.filter((p) => import.meta.env.DEV || (!isLocalAppleDemo(p.slug) && p.slug !== medusaFixtureSlug))
 }
 export const isPreview = (request: Request) => new URL(request.url).searchParams.get('preview') === '1'
 async function previewDocument<T>(type: 'page' | 'product', slug: string, request: Request): Promise<T | null> {

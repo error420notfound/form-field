@@ -274,7 +274,7 @@ export interface Category {
   createdAt: string;
 }
 /**
- * Editorial content is managed here. Prices, variants and inventory are managed in Odoo.
+ * Editorial content is managed here. Linked Medusa products use Medusa commerce; existing unlinked products retain the legacy Odoo flow.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
@@ -283,6 +283,10 @@ export interface Product {
   id: number;
   name: string;
   slug: string;
+  /**
+   * Stable prod_… ID from Medusa Admin. Linking selects Medusa commerce and its separate bag. Clear this field to restore the legacy path; existing cart selections are never migrated.
+   */
+  medusaProductId?: string | null;
   descriptor?: string | null;
   editorialOrder?: number | null;
   homepageSize?: ('broad' | 'paired') | null;
@@ -349,7 +353,7 @@ export interface Product {
     | null;
   categories?: (number | Category)[] | null;
   /**
-   * For linked products, the displayed price comes from Odoo. Edit it in Odoo.
+   * Legacy price in paise. Medusa-linked products ignore this value; manage their prices in Medusa Admin.
    */
   price?: number | null;
   currency: 'INR';
@@ -720,6 +724,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  medusaProductId?: T;
   descriptor?: T;
   editorialOrder?: T;
   homepageSize?: T;

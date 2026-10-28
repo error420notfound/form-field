@@ -19,6 +19,9 @@ import {
   type Product,
 } from '../../lib/cms'
 import { art, descriptor } from '../../lib/catalogue'
+import { composeProduct, commercePriceLabel } from '../../lib/commerce/products'
+import { canUseMedusa } from '../../lib/commerce/policy'
+import CommercePurchase from '../../components/interactive/CommercePurchase'
 let p: Product | undefined,
   related: Product[] = [],
   error = ''
@@ -41,7 +44,8 @@ if (isPreview(Astro.request)) { Astro.response.headers.set('Cache-Control', 'pri
 if (!p) Astro.response.status = error ? (isPreview(Astro.request) ? 403 : 503) : 404
 const canConfigure = !isPreview(Astro.request) && !!p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
 const reviewImage = p && art(p)
-const inventory = p ? await stock(p.id) : null
+const composed = p?.medusaProductId ? await composeProduct(p) : null
+const inventory = p && !p.medusaProductId ? await stock(p.id) : null
 const images = p
   ? reviewImage
     ? [
@@ -118,7 +122,7 @@ const facts = p
             ) : (
               <>
                 <p>
-                  {typeof p.price === 'number'
+                  {p.medusaProductId ? commercePriceLabel(composed?.commerce || null) : typeof p.price === 'number'
                     ? `Linked configuration: ${price(p.price)}`
                     : 'Price to be confirmed'}{' '}
                   · {availability(p.availability)}
@@ -214,7 +218,7 @@ const facts = p
           </p>
           <h2>{canConfigure ? p.name : 'Not available to purchase.'}</h2>
           <p>
-            {typeof p.price === 'number'
+            {p.medusaProductId ? commercePriceLabel(composed?.commerce || null) : typeof p.price === 'number'
               ? `Linked configuration: ${price(p.price)}`
               : 'Price to be confirmed.'}
           </p>
@@ -228,9 +232,11 @@ const facts = p
           )}
         </div>
         <div>
-          {!isPreview(Astro.request) && <AddToCart product={p} />}
+          {p.medusaProductId ? (
+            composed?.commerce ? <CommercePurchase productId={p.id} commerce={composed.commerce} disabled={isPreview(Astro.request) || !canUseMedusa(p)} client:load /> : <p role="status">Commerce details are temporarily unavailable. Please refresh to try again.</p>
+          ) : !isPreview(Astro.request) && <AddToCart product={p} />}
           <p class="muted">
-            {canConfigure
+            {p.medusaProductId ? 'Commerce-enabled object · separate commerce bag.' : canConfigure
               ? 'Local demo orders do not collect payment.'
               : 'This concept cannot be added to your bag.'}
           </p>

@@ -1,5 +1,21 @@
 # Local architecture
 
+## Commerce transition (28 October 2026)
+
+The npm workspace now also contains Medusa 2.22.1 at `apps/commerce`. Medusa owns commerce for products explicitly linked by Payload's optional `medusaProductId`; Payload owns editorial content and Astro composes the final experience. Payload continues using its existing SQLite database and uploads. Medusa has a separate PostgreSQL database. This intentional SQLite/PostgreSQL split preserves existing data rather than migrating the CMS unnecessarily.
+
+```mermaid
+flowchart LR
+  Payload[Payload editorial content · SQLite] --> Astro[Astro storefront]
+  Medusa[Medusa commerce · PostgreSQL] --> Astro
+  Astro --> Cart[Separate Medusa cart]
+  Legacy[Existing Payload customers and Odoo demo flow] --> Demo[Legacy demo bag and checkout]
+```
+
+India/INR commerce is accessible at http://localhost:9000, with Medusa Admin at `/app`. The separate commerce bag at `/commerce/cart` stores an anonymous Medusa cart identity in an HTTP-only cookie and uses official SDK operations through Astro's same-origin API. It does not place orders or collect payments. Existing numeric Odoo variant selections, Payload customer sessions, historical orders, and the legacy demo checkout remain separate. No automatic account/cart migration or new ERP dependency is introduced.
+
+Use `npm run dev:all` for the complete local environment; the existing `npm run dev` CMS/Astro workflow remains. See [commerce](commerce.md), [development](development.md), [integration boundaries](integrations.md), [tooling](medusa-tooling.md), and [audit](medusa-implementation.md). The source-grounded transition notes above supersede older deferred-functionality descriptions below.
+
 Payload in `apps/cms` owns content, administrator access, drafts, SQLite and uploads. The Next.js application hosts its admin and REST routes. Astro in `apps/storefront` renders the storefront per request through the standalone Node adapter. It fetches published content through REST without administrator credentials; it never accesses SQLite directly.
 
 ## Rendering and UI
@@ -22,7 +38,7 @@ Media adds provenance, placeholder flags and mobile focal points alongside Paylo
 
 POST `/api/cart` validates at most 100 selections and quantities 1–99, then resolves current published details. Shared purchase policy excludes unknown prices, unavailable objects, disabled purchase eligibility and review concepts. Removed or unpublished IDs remain explanatory lines and cannot contribute to subtotals. Zero is an explicit supplied price, not a fallback for unknowns. Price and availability refresh before summaries display. Request cancellation prevents stale responses; errors retain selections and offer Retry. Removal offers Undo.
 
-Checkout is a local layout demonstration with editable, non-submitting address fields, an indicative Bag summary and a disabled payment action. No address is stored, no payment-provider interface is simulated and no order is created. Shipping, taxes, orders, variants, inventory reservations, customer accounts and deployment remain deferred.
+The existing checkout is a local Odoo demonstration using Payload customers and saved delivery details/orders. Its configurator reads numeric Odoo variants; the legacy bag resolves current Odoo prices and stock. It does not collect money. See [the existing Odoo workflow](odoo-local-workflow.md) for its reservation and simulated-payment semantics. Live Odoo verification requires private credentials, which are not supplied by the Medusa setup. Medusa-linked products cannot enter this legacy checkout; their independent cart currently stops before checkout.
 
 ## Local persistence and upgrades
 

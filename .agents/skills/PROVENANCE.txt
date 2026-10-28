@@ -1,0 +1,4 @@
+Official upstream: https://github.com/medusajs/medusa-agent-skills
+Reviewed source tree: 42b9afd28b22ee6077d3c0ea8b5444a8c9bee1bc
+Installed using the Codex skill-installer Git fallback; portable skill files only.
+See docs/medusa-tooling.md for scope and installation details.

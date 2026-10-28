@@ -2,7 +2,9 @@
 import { isDigitalAppleDemo, isLocalAppleDemo } from '../../../cms/src/local-apple-demo'
 import { image, media, price, availability, type Product } from '../lib/cms'
 import { art, descriptor } from '../lib/catalogue'
+import { composeProduct, commercePriceLabel } from '../lib/commerce/products'
 const { product: p } = Astro.props as { product: Product }
+const composed = p.medusaProductId ? await composeProduct(p) : null
 const img = image(p),
   src = art(p) || img.url
 const Heading = Astro.props.headingLevel === 3 ? 'h3' : 'h2'
@@ -39,7 +41,7 @@ const crop = {
       <a href={`/products/${p.slug}`}>{p.name}</a>
     </Heading>
     <span>
-      {isLocalAppleDemo(p.slug) ? 'Local demonstration' : typeof p.price === 'number' ? price(p.price) : 'Price to be confirmed'}
+      {isLocalAppleDemo(p.slug) ? 'Local demonstration' : p.medusaProductId ? commercePriceLabel(composed?.commerce || null) : typeof p.price === 'number' ? price(p.price) : 'Price to be confirmed'}
     </span>
   </div>
   <p>{descriptor(p)}</p>

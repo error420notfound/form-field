@@ -5,7 +5,7 @@ type Product = PurchaseCandidate & { id: number }
 export async function resolveCart<T extends Product>(selections: CartSelection[], products: T[], getStock: (id: number, variantId?: number) => Promise<CartStock>) {
   const resolved = await Promise.all(selections.map(async selection => {
     const product = products.find(item => item.id === selection.id)
-    return { selection, product, inventory: product ? await getStock(product.id, selection.variantId) : null }
+    return { selection, product, inventory: product && !product.medusaProductId ? await getStock(product.id, selection.variantId) : null }
   }))
   return resolved.map(({ selection, product, inventory }) => {
     if (!product || !inventory) return { selection, product, inventory, purchasable: false, total: 0, requested: selection.quantity }

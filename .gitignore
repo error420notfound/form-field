@@ -9,3 +9,5 @@ apps/cms/data/
 apps/cms/uploads/
 .qa/
 .playwright-cli/
+.local/
+.medusa/

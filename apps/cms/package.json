@@ -19,7 +19,8 @@
     "seed:commerce": "node --import tsx src/commerce/demo.ts seed",
     "clean:commerce": "node --import tsx src/commerce/demo.ts clean",
     "sync:commerce": "node --import tsx src/commerce/sync.ts",
-    "seed:website": "node --import tsx src/website/seed.ts"
+    "seed:website": "node --import tsx src/website/seed.ts",
+    "seed:medusa-fixture": "node --import tsx src/seed-medusa-fixture.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",

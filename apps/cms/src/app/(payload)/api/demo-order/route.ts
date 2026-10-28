@@ -39,6 +39,7 @@ export async function POST(request: Request) {
   try {
     lines = await Promise.all(items.map(async item => {
       const product = await payload.findByID({ collection: 'products', id: item.id, depth: 0, overrideAccess: true })
+      if (product?.medusaProductId) throw new Error('Use the separate commerce bag for this product.')
       const remote = await linkedOdooProduct(item.id, item.variantId)
       if (!product || product._status !== 'published' || product.reviewOnly || product.purchaseEligible === false || product.availability !== 'available' || !remote || remote.quantity < item.quantity) throw new Error('A product is unavailable or has insufficient stock.')
       return { id: item.id, name: product.name, quantity: item.quantity, odooId: remote.id, unitPrice: remote.price, options: remote.options }

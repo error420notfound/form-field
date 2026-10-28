@@ -11,6 +11,7 @@ import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import sharp from 'sharp'
 import { linkedOdooProduct } from './odoo-product'
 import { localAppleDemoSlugs } from './local-apple-demo'
+import { medusaFixtureSlug } from './medusa-fixture'
 import { staff, owner, editor, operator, draftOnly, canEdit } from './access'
 import { websitePages } from './website/pages'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -20,11 +21,13 @@ const editorial = { create: editor, update: editor, delete: owner }
 const publicRead = () => true
 const products: CollectionConfig = {
   slug: 'products',
-  admin: { group: 'Website', components: { edit: { beforeDocumentControls: ['./src/website/ProductCommerce#default'] } }, useAsTitle: 'name', defaultColumns: ['name', 'slug', '_status', 'updatedAt'], description: 'Editorial content is managed here. Prices, variants and inventory are managed in Odoo.', preview: (doc) => doc.slug ? `${process.env.STOREFRONT_ORIGIN || 'http://localhost:4321'}/products/${encodeURIComponent(String(doc.slug))}?preview=1` : null },
+  admin: { group: 'Website', components: { edit: { beforeDocumentControls: ['./src/website/ProductCommerce#default'] } }, useAsTitle: 'name', defaultColumns: ['name', 'slug', '_status', 'updatedAt'], description: 'Editorial content is managed here. Linked Medusa products use Medusa commerce; existing unlinked products retain the legacy Odoo flow.', preview: (doc) => doc.slug ? `${process.env.STOREFRONT_ORIGIN || 'http://localhost:4321'}/products/${encodeURIComponent(String(doc.slug))}?preview=1` : null },
   versions: { drafts: true },
   hooks: {
     beforeChange: [draftOnly],
     afterRead: [async ({ doc }) => {
+      // Never overlay legacy prices or contact Odoo for a Medusa-linked story.
+      if (doc.medusaProductId) { doc.price = null; return doc }
       try {
         const odoo = await linkedOdooProduct(doc.id)
         if (odoo) doc.price = odoo.price
@@ -38,13 +41,19 @@ const products: CollectionConfig = {
   access: {
     ...editorial,
     read: ({ req }) => (canEdit(req.user) ? true : process.env.NODE_ENV === 'production'
-      ? { _status: { equals: 'published' }, slug: { not_in: [...localAppleDemoSlugs] } } as Where
+      ? { _status: { equals: 'published' }, slug: { not_in: [...localAppleDemoSlugs, medusaFixtureSlug] } } as Where
       : { _status: { equals: 'published' } }),
     readVersions: editor,
   },
   fields: [
     { name: 'name', type: 'text', required: true },
     { name: 'slug', type: 'text', required: true, unique: true, index: true },
+    {
+      name: 'medusaProductId', type: 'text', unique: true, index: true,
+      admin: { description: 'Stable prod_… ID from Medusa Admin. Linking selects Medusa commerce and its separate bag. Clear this field to restore the legacy path; existing cart selections are never migrated.' },
+      hooks: { beforeValidate: [({ value }) => typeof value === 'string' ? value.trim() || null : value] },
+      validate: (value: unknown) => value == null || (typeof value === 'string' && /^prod_[\w-]{1,100}$/.test(value)) || 'Enter a Medusa product ID beginning with prod_.',
+    },
     { name: 'descriptor', type: 'text' },
     { name: 'editorialOrder', type: 'number', defaultValue: 100 },
     {
@@ -138,7 +147,11 @@ const products: CollectionConfig = {
     {
       name: 'price',
       type: 'number',
-      admin: { description: 'For linked products, the displayed price comes from Odoo. Edit it in Odoo.' },
+      access: {
+        create: ({ data }) => !data?.medusaProductId,
+        update: ({ data, doc }) => !data?.medusaProductId && !doc?.medusaProductId,
+      },
+      admin: { description: 'Legacy price in paise. Medusa-linked products ignore this value; manage their prices in Medusa Admin.', condition: (data) => !data?.medusaProductId },
       required: process.env.FORM_FIELD_ADDITIVE_SCHEMA === '1',
       min: 0,
       validate: (value: unknown) =>

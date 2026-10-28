@@ -7,6 +7,7 @@ let p
 try { p = isLocalAppleDemo(Astro.params.slug!) && !import.meta.env.DEV ? undefined : await product(Astro.params.slug!) } catch { Astro.response.status = 503 }
 const demo = p?.slug === 'homeview-review' && import.meta.env.DEV
 if (!p) Astro.response.status = Astro.response.status === 503 ? 503 : 404
+if (p?.medusaProductId) return Astro.redirect(`/products/${p.slug}#purchase`)
 const allowed = p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
 const gallery = (p?.gallery || []).map(media).filter(m => m !== null).map(m => ({ src: mediaURL(m.sizes?.gallery?.url || m.url), alt: m.alt }))
 const facts = p ? [['Materials', p.materials], ['Dimensions', p.dimensions], ['Care', p.care], ['What’s included', p.included]].flatMap(([label, value]) => value ? [{ label: label!, value }] : []) : []

@@ -2,6 +2,12 @@
 
 A local, story-led storefront for **form+field**, built with Astro, Payload, React islands and shadcn/ui. The design follows `ecomm-design.md`; the shared catalogue stays neutral while product stories theme the full document.
 
+Medusa 2.22.1 is integrated as a separate commerce workspace. Payload retains its existing SQLite/editorial data; Medusa uses a dedicated PostgreSQL database. Existing Odoo demo commerce and Payload customers remain available alongside the separate Medusa product/cart path.
+
+For complete setup and verified commands, see [local development](docs/development.md), [commerce](docs/commerce.md), [architecture](docs/architecture.md), [integration boundaries](docs/integrations.md), and [Medusa tooling](docs/medusa-tooling.md). After first-time database/migration setup, `npm run dev:all` starts PostgreSQL, Medusa, Payload and Astro; Ctrl+C stops the managed group. The existing `npm run dev` continues to start CMS and Astro only. Medusa Admin is http://localhost:9000/app and the new bag is http://localhost:4321/commerce/cart. Production payments, Medusa customer migration and production deployment remain deferred.
+
+See the [implementation and verification report](docs/medusa-verification.md) for installed versions, test results, local review URLs and remaining external authentication requirements.
+
 ## Prerequisites and installation
 
 Use Node.js 24 LTS (tested with 24.21.0) and npm 11. This repository uses plain npm workspaces. From the repository root:
