@@ -9,6 +9,7 @@ import AppleDemoStory from '../../components/AppleDemoStory.astro'
 import { isLocalAppleDemo } from '../../../../cms/src/local-apple-demo'
 import PdpSections from '../../components/PdpSections.astro'
 import {
+  isPreview,
   product,
   media,
   mediaURL,
@@ -22,7 +23,7 @@ let p: Product | undefined,
   related: Product[] = [],
   error = ''
 try {
-  p = isLocalAppleDemo(Astro.params.slug!) && !import.meta.env.DEV ? undefined : await product(Astro.params.slug!)
+  p = isLocalAppleDemo(Astro.params.slug!) && !import.meta.env.DEV ? undefined : await product(Astro.params.slug!, Astro.request)
   if (p)
     related = (p.relatedObjects || [])
       .filter(
@@ -36,8 +37,9 @@ try {
   error =
     'The object’s story is temporarily unavailable. Please try again shortly.'
 }
-if (!p) Astro.response.status = error ? 503 : 404
-const canConfigure = !!p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
+if (isPreview(Astro.request)) { Astro.response.headers.set('Cache-Control', 'private, no-store'); Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow') }
+if (!p) Astro.response.status = error ? (isPreview(Astro.request) ? 403 : 503) : 404
+const canConfigure = !isPreview(Astro.request) && !!p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
 const reviewImage = p && art(p)
 const inventory = p ? await stock(p.id) : null
 const images = p
@@ -226,7 +228,7 @@ const facts = p
           )}
         </div>
         <div>
-          <AddToCart product={p} />
+          {!isPreview(Astro.request) && <AddToCart product={p} />}
           <p class="muted">
             {canConfigure
               ? 'Local demo orders do not collect payment.'

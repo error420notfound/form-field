@@ -11,16 +11,19 @@ import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import sharp from 'sharp'
 import { linkedOdooProduct } from './odoo-product'
 import { localAppleDemoSlugs } from './local-apple-demo'
+import { staff, owner, editor, operator, draftOnly, canEdit } from './access'
+import { websitePages } from './website/pages'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const admin = ({ req }: { req: PayloadRequest }) =>
-  req.user?.collection === 'users'
-const writable = { create: admin, update: admin, delete: admin }
+const admin = staff
+const writable = { create: owner, update: owner, delete: owner }
+const editorial = { create: editor, update: editor, delete: owner }
 const publicRead = () => true
 const products: CollectionConfig = {
   slug: 'products',
-  admin: { useAsTitle: 'name' },
+  admin: { group: 'Website', components: { edit: { beforeDocumentControls: ['./src/website/ProductCommerce#default'] } }, useAsTitle: 'name', defaultColumns: ['name', 'slug', '_status', 'updatedAt'], description: 'Editorial content is managed here. Prices, variants and inventory are managed in Odoo.', preview: (doc) => doc.slug ? `${process.env.STOREFRONT_ORIGIN || 'http://localhost:4321'}/products/${encodeURIComponent(String(doc.slug))}?preview=1` : null },
   versions: { drafts: true },
   hooks: {
+    beforeChange: [draftOnly],
     afterRead: [async ({ doc }) => {
       try {
         const odoo = await linkedOdooProduct(doc.id)
@@ -33,11 +36,11 @@ const products: CollectionConfig = {
     }],
   },
   access: {
-    ...writable,
-    read: ({ req }) => (req.user ? true : process.env.NODE_ENV === 'production'
+    ...editorial,
+    read: ({ req }) => (canEdit(req.user) ? true : process.env.NODE_ENV === 'production'
       ? { _status: { equals: 'published' }, slug: { not_in: [...localAppleDemoSlugs] } } as Where
       : { _status: { equals: 'published' } }),
-    readVersions: admin,
+    readVersions: editor,
   },
   fields: [
     { name: 'name', type: 'text', required: true },
@@ -188,6 +191,8 @@ export default buildConfig({
   cors: [process.env.STOREFRONT_ORIGIN || 'http://localhost:4321'],
   csrf: [process.env.CMS_URL || 'http://localhost:3000'],
   admin: {
+    components: { beforeDashboard: ['./src/commerce/Dashboard#default'], graphics: { Logo: './src/website/Brand#Logo', Icon: './src/website/Brand#Icon' } },
+    meta: { titleSuffix: ' · form+field' },
     user: 'users',
     importMap: {
       baseDir: root,
@@ -195,6 +200,7 @@ export default buildConfig({
     },
   },
   db: sqliteAdapter({
+    ...(process.env.COMMERCE_SCHEMA_MANAGED === '1' ? { push: false } : {}),
     client: { url: process.env.DATABASE_URL || 'file:./data/store.db' },
   }),
   sharp,
@@ -203,14 +209,15 @@ export default buildConfig({
     {
       slug: 'users',
       auth: true,
-      access: { ...writable, read: admin, admin, unlock: admin },
-      fields: [],
+      admin: { group: 'Settings' },
+      access: { ...writable, read: owner, admin: staff, unlock: owner },
+      fields: [{ name: 'role', type: 'select', required: true, defaultValue: ({ user }) => user ? 'editor' : 'owner', options: ['owner', 'editor', 'operations'], access: { create: owner, update: owner } }],
     },
     {
       slug: 'customers',
       auth: { tokenExpiration: 60 * 60 * 24, maxLoginAttempts: 5, lockTime: 600000 },
-      admin: { useAsTitle: 'email', defaultColumns: ['email', 'name', 'odooSyncStatus'] },
-      access: { ...writable, read: admin, admin },
+      admin: { group: 'Commerce', useAsTitle: 'email', defaultColumns: ['email', 'name', 'odooSyncStatus'] },
+      access: { ...writable, read: operator, admin: operator },
       fields: [
         { name: 'name', type: 'text', required: true },
         { name: 'address', type: 'text' },
@@ -225,7 +232,8 @@ export default buildConfig({
     },
     {
       slug: 'media',
-      access: { ...writable, read: ({ req }) => req.user || process.env.NODE_ENV !== 'production' ? true : { or: [{ role: { exists: false } }, { role: { not_equals: 'local-homeview-demo' } }] } },
+      admin: { group: 'Website' },
+      access: { create: editor, update: owner, delete: owner, read: ({ req }) => req.user || process.env.NODE_ENV !== 'production' ? true : { or: [{ role: { exists: false } }, { role: { not_equals: 'local-homeview-demo' } }] } },
       upload: {
         staticDir: path.join(root, 'uploads'),
         mimeTypes: ['image/*'],
@@ -262,7 +270,7 @@ export default buildConfig({
     },
     {
       slug: 'categories',
-      admin: { useAsTitle: 'name' },
+      admin: { group: 'Website', useAsTitle: 'name' },
       access: { ...writable, read: publicRead },
       fields: [
         { name: 'name', type: 'text', required: true },
@@ -271,12 +279,30 @@ export default buildConfig({
       ],
     },
     products,
+    websitePages,
+    {
+      slug: 'inventory-snapshots',
+      admin: { group: 'Commerce', useAsTitle: 'name', defaultColumns: ['name', 'source', 'quantity', 'updatedAt'] },
+      access: { create: () => false, update: () => false, delete: () => false, read: operator },
+      fields: [
+        { name: 'name', type: 'text', required: true },
+        { name: 'productId', type: 'number', admin: { readOnly: true } },
+        { name: 'source', type: 'select', required: true, options: ['demo', 'odoo'], admin: { readOnly: true } },
+        { name: 'demoSeed', type: 'text', index: true, access: { create: () => false, update: () => false }, admin: { readOnly: true } },
+        { name: 'quantity', type: 'number', required: true, admin: { readOnly: true } },
+        { name: 'price', type: 'number', admin: { readOnly: true, description: 'Price in paise.' } },
+        { name: 'observedAt', type: 'date', required: true, admin: { readOnly: true } },
+        { name: 'syncError', type: 'text', admin: { readOnly: true } },
+      ],
+    },
     {
       slug: 'orders',
-      admin: { useAsTitle: 'reference', defaultColumns: ['reference', 'status', 'paymentStatus', 'odooReference', 'createdAt'] },
-      access: { ...writable, read: admin },
+      admin: { group: 'Commerce', useAsTitle: 'reference', defaultColumns: ['reference', 'status', 'paymentStatus', 'odooReference', 'createdAt'] },
+      access: { create: () => false, update: () => false, delete: () => false, read: operator },
       fields: [
         { name: 'reference', type: 'text', required: true, unique: true, index: true },
+        { name: 'demoSeed', type: 'text', index: true, access: { create: () => false, update: () => false }, admin: { readOnly: true, description: 'Identifies isolated local dashboard sample records.' } },
+        { name: 'operations', type: 'json', access: { create: () => false, update: () => false }, admin: { readOnly: true, description: 'Order operation snapshots and event history. Live fulfilment is owned by Odoo.' } },
         { name: 'account', type: 'relationship', relationTo: 'customers', index: true, admin: { description: 'Empty for older guest orders.' } },
         { name: 'status', type: 'select', required: true, defaultValue: 'pending', options: ['pending', 'confirmed', 'review'] },
         { name: 'customer', type: 'json', required: true },
@@ -294,7 +320,8 @@ export default buildConfig({
   globals: [
     {
       slug: 'store-settings',
-      access: { read: publicRead, update: admin },
+      admin: { group: 'Settings' },
+      access: { read: publicRead, update: owner },
       fields: [
         { name: 'storeName', type: 'text', required: true },
         { name: 'introduction', type: 'textarea' },

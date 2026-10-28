@@ -15,7 +15,11 @@
     "media:review": "node ../../scripts/run.mjs tsx src/attach-review-media.ts",
     "check:odoo": "node ../../scripts/check-odoo.mjs",
     "seed:homeview": "node ../../scripts/run.mjs tsx src/seed-homeview.ts",
-    "seed:apple-demos": "node ../../scripts/run.mjs tsx src/seed-apple-demos.ts"
+    "seed:apple-demos": "node ../../scripts/run.mjs tsx src/seed-apple-demos.ts",
+    "seed:commerce": "node --import tsx src/commerce/demo.ts seed",
+    "clean:commerce": "node --import tsx src/commerce/demo.ts clean",
+    "sync:commerce": "node --import tsx src/commerce/sync.ts",
+    "seed:website": "node --import tsx src/website/seed.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",

@@ -1,7 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import SupportDetails from '../components/interactive/SupportDetails'
-import { settings } from '../lib/cms'
+import { settings, websitePage, isPreview } from '../lib/cms'
+import WebsiteSections from '../components/WebsiteSections.astro'
+let website = null
+try { website = await websitePage('support', Astro.request) } catch { if (isPreview(Astro.request)) Astro.response.status = 403 }
 let email: string | null | undefined
 try {
   email = (await settings()).contactEmail
@@ -9,6 +12,7 @@ try {
 ---
 
 <Layout title="Support">
+  {website?.sections?.length ? <WebsiteSections sections={website.sections} email={email} /> : <>
   <section class="section support-page">
     <div class="page-heading">
       <h1>
@@ -35,4 +39,5 @@ try {
       <SupportDetails client:load />
     </div>
   </section>
+  </>}
 </Layout>

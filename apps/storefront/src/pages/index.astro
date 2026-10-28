@@ -2,7 +2,10 @@
 import Layout from '../layouts/Layout.astro'
 import ObjectFeature from '../components/ObjectFeature.astro'
 import { catalogue } from '../lib/catalogue'
-import type { Product } from '../lib/cms'
+import { websitePage, isPreview, type Product } from '../lib/cms'
+import WebsiteSections from '../components/WebsiteSections.astro'
+let website = null
+try { website = await websitePage('home', Astro.request) } catch { if (isPreview(Astro.request)) Astro.response.status = 403 }
 let items: Product[] = [],
   error = ''
 try {
@@ -23,6 +26,15 @@ const closing = remaining.slice(remaining.length - finalCount)
 ---
 
 <Layout title="Objects shaped by familiar desires">
+  {website?.sections?.length ? (
+    <WebsiteSections sections={website.sections}>
+      <div slot="catalogue" class="catalogue-features">
+        {broad.map((p, i) => <ObjectFeature product={p} lead={i === 0} />)}
+        <div class="paired-features">{paired.map((p) => <ObjectFeature product={p} compact />)}</div>
+        {closing.map((p) => <ObjectFeature product={p} />)}
+      </div>
+    </WebsiteSections>
+  ) : <>
   {error ? (
     <section class="section error-state">
       <h1>Objects, in a moment.</h1>
@@ -72,4 +84,5 @@ const closing = remaining.slice(remaining.length - finalCount)
       </a>
     </div>
   </section>
+  </>}
 </Layout>

@@ -1,5 +1,5 @@
 ---
-import { settings } from '../lib/cms'
+import { settings, websitePage, isPreview } from '../lib/cms'
 import { themeFor } from '../lib/catalogue'
 import SiteHeader from '../components/SiteHeader.astro'
 import SiteFooter from '../components/SiteFooter.astro'
@@ -9,6 +9,10 @@ import facultyFont from '@fontsource/faculty-glyphic/files/faculty-glyphic-latin
 import geistFont from '@fontsource/geist/files/geist-latin-400-normal.woff2?url'
 const { title, theme = 'neutral' } = Astro.props
 let store
+let navigation = null
+try { navigation = await websitePage('navigation', Astro.request) } catch {}
+if (isPreview(Astro.request)) { Astro.response.headers.set('Cache-Control', 'private, no-store'); Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow') }
+const links = navigation?.sections?.filter((s) => s.kind === 'link' && s.linkText && s.linkUrl).map((s) => ({label:s.linkText!, url:s.linkUrl!}))
 try {
   store = await settings()
 } catch {
@@ -51,11 +55,12 @@ const rootTheme = themeFor(theme)
     <a class="skip" href="#main">
       Skip to content
     </a>
-    <SiteHeader />
+    {isPreview(Astro.request) && <div role="status" style="padding:.65rem 1rem;text-align:center;background:#e8dfc9;color:#242018;font-size:.85rem">Draft preview · Sign in to Payload on this hostname to view unpublished content.</div>}
+    <SiteHeader links={links} />
     <main id="main">
       <slot />
     </main>
-    <SiteFooter email={store?.contactEmail} />
+    <SiteFooter email={store?.contactEmail} links={links} />
     <script>
       const measure = () => {
         const header = document.querySelector('.site-header')

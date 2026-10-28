@@ -73,6 +73,8 @@ export interface Config {
     media: Media;
     categories: Category;
     products: Product;
+    'website-pages': WebsitePage;
+    'inventory-snapshots': InventorySnapshot;
     orders: Order;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -86,6 +88,8 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
+    'website-pages': WebsitePagesSelect<false> | WebsitePagesSelect<true>;
+    'inventory-snapshots': InventorySnapshotsSelect<false> | InventorySnapshotsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -154,6 +158,7 @@ export interface CustomerAuthOperations {
  */
 export interface User {
   id: number;
+  role: 'owner' | 'editor' | 'operations';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -269,6 +274,8 @@ export interface Category {
   createdAt: string;
 }
 /**
+ * Editorial content is managed here. Prices, variants and inventory are managed in Odoo.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
@@ -365,12 +372,78 @@ export interface Product {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Use approved sections to compose website pages. The storefront keeps its existing content until a page is published.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "website-pages".
+ */
+export interface WebsitePage {
+  id: number;
+  title: string;
+  /**
+   * Each page type can have one record.
+   */
+  slug: 'home' | 'about' | 'support' | 'navigation';
+  /**
+   * Drag sections to change their order. Navigation uses Link sections; the homepage may include the Catalogue section.
+   */
+  sections: {
+    kind: 'intro' | 'editorial' | 'catalogue' | 'brand-note' | 'support-details' | 'faq' | 'contact' | 'link';
+    label?: string | null;
+    heading?: string | null;
+    copy?: string | null;
+    linkText?: string | null;
+    linkUrl?: string | null;
+    media?: (number | null) | Media;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-snapshots".
+ */
+export interface InventorySnapshot {
+  id: number;
+  name: string;
+  productId?: number | null;
+  source: 'demo' | 'odoo';
+  demoSeed?: string | null;
+  quantity: number;
+  /**
+   * Price in paise.
+   */
+  price?: number | null;
+  observedAt: string;
+  syncError?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
 export interface Order {
   id: number;
   reference: string;
+  /**
+   * Identifies isolated local dashboard sample records.
+   */
+  demoSeed?: string | null;
+  /**
+   * Order operation snapshots and event history. Live fulfilment is owned by Odoo.
+   */
+  operations?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Empty for older guest orders.
    */
@@ -458,6 +531,14 @@ export interface PayloadLockedDocument {
         value: number | Product;
       } | null)
     | ({
+        relationTo: 'website-pages';
+        value: number | WebsitePage;
+      } | null)
+    | ({
+        relationTo: 'inventory-snapshots';
+        value: number | InventorySnapshot;
+      } | null)
+    | ({
         relationTo: 'orders';
         value: number | Order;
       } | null);
@@ -518,6 +599,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -719,10 +801,51 @@ export interface ProductsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "website-pages_select".
+ */
+export interface WebsitePagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  sections?:
+    | T
+    | {
+        kind?: T;
+        label?: T;
+        heading?: T;
+        copy?: T;
+        linkText?: T;
+        linkUrl?: T;
+        media?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-snapshots_select".
+ */
+export interface InventorySnapshotsSelect<T extends boolean = true> {
+  name?: T;
+  productId?: T;
+  source?: T;
+  demoSeed?: T;
+  quantity?: T;
+  price?: T;
+  observedAt?: T;
+  syncError?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
   reference?: T;
+  demoSeed?: T;
+  operations?: T;
   account?: T;
   status?: T;
   customer?: T;

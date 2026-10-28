@@ -93,3 +93,9 @@ Routes: Home, Objects (`/shop`), product stories, About, Support, Bag (`/cart`) 
 Faculty Glyphic and Geist are self-hosted through Fontsource. Font and Keyline licences are retained in `docs/licences`. Review asset provenance is in `docs/design/asset-provenance.json`; these AI-generated references are expressly not product photography or confirmed designs. Chroma snapshots and source revision are under `apps/storefront/src/data`.
 
 Use Node 24. Validation commands: `npm.cmd test`, `npm.cmd run check`, `npm.cmd run build`. The purchase-policy tests protect unknown-price and review eligibility rules. Browser verification and intentional concept corrections are recorded in `docs/design/review.md`.
+
+## Commerce operations dashboard
+
+The Payload admin includes a separate fictional demo dashboard and a live-record view. See [commerce dashboard setup and limitations](docs/commerce-dashboard.md) for migrations, seeding, cleanup, reporting definitions, and Odoo refresh. Checkout remains local and simulated.
+
+For staff roles, website drafts, preview, and local upgrade steps, see [management workspace](docs/management-platform.md).

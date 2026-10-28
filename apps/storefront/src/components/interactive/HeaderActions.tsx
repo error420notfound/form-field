@@ -10,7 +10,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import BagView from './BagView'
-export default function HeaderActions() {
+export default function HeaderActions({ links = [{url:"/shop",label:"Objects"},{url:"/about",label:"About"},{url:"/support",label:"Support"}] }: { links?: {url:string;label:string}[] }) {
   const { items } = useBag()
   const count = items.reduce((sum, s) => sum + s.quantity, 0)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -52,16 +52,8 @@ export default function HeaderActions() {
             <SheetDescription>Explore form+field</SheetDescription>
           </SheetHeader>
           <nav aria-label="Mobile navigation">
-            {[
-              ['/', 'Home'],
-              ['/shop', 'Objects'],
-              ['/about', 'About'],
-              ['/support', 'Support'],
-              ['/cart', 'Bag'],
-            ].map(([url, label]) => (
-              <a key={url} href={url} onClick={() => setMenuOpen(false)}>
-                {label}
-              </a>
+            {[{url:'/',label:'Home'}, ...links, {url:'/cart',label:'Bag'}].map(({url,label}) => (
+              <a key={`${url}-${label}`} href={url} onClick={() => setMenuOpen(false)}>{label}</a>
             ))}
           </nav>
         </SheetContent>

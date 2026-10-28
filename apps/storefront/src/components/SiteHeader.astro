@@ -1,6 +1,7 @@
 ---
 import HeaderActions from './interactive/HeaderActions'
 const path = Astro.url.pathname
+const links = Astro.props.links?.length ? Astro.props.links : [{url:'/shop',label:'Objects'},{url:'/about',label:'About'},{url:'/support',label:'Support'}]
 ---
 
 <header class="site-header">
@@ -8,17 +9,9 @@ const path = Astro.url.pathname
     form+field
   </a>
   <nav class="desktop-nav" aria-label="Main navigation">
-    <a href="/shop" aria-current={path === '/shop' ? 'page' : undefined}>
-      Objects
-    </a>
-    <a href="/about" aria-current={path === '/about' ? 'page' : undefined}>
-      About
-    </a>
-    <a href="/support" aria-current={path === '/support' ? 'page' : undefined}>
-      Support
-    </a>
+    {links.map((link: {url:string;label:string}) => <a href={link.url} aria-current={path === link.url ? 'page' : undefined}>{link.label}</a>)}
   </nav>
-  <HeaderActions client:load />
+  <HeaderActions links={links} client:load />
   <noscript>
     <a href="/shop">Objects</a> <a href="/cart">Bag</a>
   </noscript>

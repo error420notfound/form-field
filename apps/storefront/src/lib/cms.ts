@@ -4,8 +4,9 @@ import type {
   Media,
   Category,
   StoreSetting,
+  WebsitePage,
 } from '../../../cms/src/payload-types'
-export type { Product, Media, Category, StoreSetting }
+export type { Product, Media, Category, StoreSetting, WebsitePage }
 const base = (
   import.meta.env.CMS_URL ||
   process.env.CMS_URL ||
@@ -51,7 +52,22 @@ export async function products(query = '') {
     )
   ).docs.filter((p) => import.meta.env.DEV || !isLocalAppleDemo(p.slug))
 }
-export async function product(slug: string) {
+export const isPreview = (request: Request) => new URL(request.url).searchParams.get('preview') === '1'
+async function previewDocument<T>(type: 'page' | 'product', slug: string, request: Request): Promise<T | null> {
+  const cookie = request.headers.get('cookie')
+  if (!cookie) throw new Error('Sign in to Payload on the same hostname to view this draft.')
+  const response = await fetch(`${base}/api/editor-preview?type=${type}&slug=${encodeURIComponent(slug)}`, {headers:{cookie, Origin: new URL(base).origin}, signal:AbortSignal.timeout(8000), cache:'no-store', redirect:'error'})
+  if (!response.ok) throw new Error('Editor sign-in is required to view this draft.')
+  return ((await response.json()) as {doc:T | null}).doc
+}
+export async function websitePage(slug: string, request: Request): Promise<WebsitePage | null> {
+  if (isPreview(request)) return previewDocument<WebsitePage>('page',slug,request)
+  const result = await requestPage(slug)
+  return result.docs[0] || null
+}
+async function requestPage(slug: string) { return request<{docs:WebsitePage[]}>(`website-pages?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}&where[_status][equals]=published`) }
+export async function product(slug: string, req?: Request) {
+  if (req && isPreview(req)) return (await previewDocument<Product>('product',slug,req)) || undefined
   return (await products(`&where[slug][equals]=${encodeURIComponent(slug)}`))[0]
 }
 export function media(value: number | Media | null | undefined) {

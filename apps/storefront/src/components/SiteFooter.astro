@@ -1,5 +1,6 @@
 ---
 const { email } = Astro.props
+const links = Astro.props.links?.length ? Astro.props.links : [{url:'/shop',label:'Objects'},{url:'/about',label:'About'},{url:'/support',label:'Support'}]
 const realEmail = email && !email.endsWith('.test') ? email : null
 ---
 
@@ -11,9 +12,7 @@ const realEmail = email && !email.endsWith('.test') ? email : null
     <p class="credit">Designed by HS108 in India.</p>
   </div>
   <nav aria-label="Footer navigation">
-    <a href="/shop">Objects</a>
-    <a href="/about">About</a>
-    <a href="/support">Support</a>
+    {links.map((link: {url:string;label:string}) => <a href={link.url}>{link.label}</a>)}
   </nav>
   <div class="footer-note">
     <a href="/cart">Your bag</a>

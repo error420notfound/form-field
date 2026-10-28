@@ -1,0 +1,24 @@
+---
+import type { WebsitePage } from '../lib/cms'
+import { media, mediaURL } from '../lib/cms'
+import SupportDetails from './interactive/SupportDetails'
+const { sections, email } = Astro.props as { sections: NonNullable<WebsitePage['sections']>; email?: string | null }
+---
+{sections.map((section) => {
+  const image = media(section.media)
+  return section.kind === 'catalogue' ? <slot name="catalogue" /> : section.kind === 'support-details' ? <section class="section support-page"><SupportDetails client:load /></section> : section.kind === 'link' ? null : section.kind === 'brand-note' ? <section class="brand-note"><h2>{section.heading}<span class="brand-dot" aria-hidden="true">.</span></h2><div>{section.copy && <p class="website-copy">{section.copy}</p>}{section.linkText && section.linkUrl && <a class="text-link" href={section.linkUrl}>{section.linkText}</a>}</div></section> : section.kind === 'contact' ? (email && !email.endsWith('.test') ? <section class="section"><a class="text-link" href={`mailto:${email}`}>{email}</a></section> : null) : section.kind === 'faq' ? <section class="section"><details><summary>{section.heading}</summary><p>{section.copy}</p></details></section> : (
+    <section class={section.kind === 'intro' ? 'section about-intro' : 'editorial-section'}>
+      {section.kind === 'editorial' && section.label && <p class="section-label">{section.label}</p>}
+      <div>
+        {section.heading && (section.kind === 'intro' ? <h1>{section.heading}<span class="brand-dot" aria-hidden="true">.</span></h1> : <h2>{section.heading}</h2>)}
+        {section.copy && <p class={section.kind === 'intro' ? 'lead website-copy' : 'website-copy'}>{section.copy}</p>}
+        {section.linkText && section.linkUrl && <a class="text-link" href={section.linkUrl}>{section.linkText}</a>}
+        {image?.url && <img src={mediaURL(image.url)} alt={image.alt} loading="lazy" />}
+      </div>
+    </section>
+  )
+})}
+
+<style>
+  .website-copy { white-space: pre-line; }
+</style>

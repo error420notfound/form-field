@@ -1,8 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import WebsiteSections from '../components/WebsiteSections.astro'
+import { websitePage, isPreview } from '../lib/cms'
+let website = null
+try { website = await websitePage('about', Astro.request) } catch { if (isPreview(Astro.request)) Astro.response.status = 403 }
 ---
 
 <Layout title="About">
+  {website?.sections?.length ? <WebsiteSections sections={website.sections} /> : <>
   <section class="section about-intro">
     <h1>
       Familiar desires.
@@ -45,4 +50,5 @@ import Layout from '../layouts/Layout.astro'
       </a>
     </div>
   </section>
+  </>}
 </Layout>
