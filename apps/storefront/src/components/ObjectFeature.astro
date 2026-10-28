@@ -1,15 +1,18 @@
 ---
-import { image, media, type Product } from '../lib/cms'
-import { art, descriptor } from '../lib/catalogue'
-import { ArrowRight } from './icons'
+import { isDigitalAppleDemo, isLocalAppleDemo } from '../../../cms/src/local-apple-demo'
+import { image, media, homepageMediaURL, type Product } from '../lib/cms'
+import { art, descriptor, canPurchase } from '../lib/catalogue'
 const {
   product: p,
   lead = false,
   compact = false,
 } = Astro.props as { product: Product; lead?: boolean; compact?: boolean }
-const src = art(p, !compact) || image(p).url
-const Heading = lead ? 'h1' : 'h2'
 const sourceMedia = media(p.gallery?.[0])
+const src = art(p, !compact) || homepageMediaURL(sourceMedia?.sizes?.gallery?.url || sourceMedia?.url)
+const imageAlt = p.reviewOnly && !isLocalAppleDemo(p.slug) ? `Illustrative concept for ${p.name}; not an actual product design` : image(p).alt
+const Heading = lead ? 'h1' : 'h2'
+const placement = compact ? p.homepageTextPlacement || 'above' : 'above'
+const status = isDigitalAppleDemo(p.slug) ? 'Digital experience · Local Apple demonstration' : isLocalAppleDemo(p.slug) ? 'Local Apple demonstration' : p.reviewOnly ? 'Draft concept' : ''
 const crop = {
   '--media-x': (sourceMedia?.focalX ?? 50) + '%',
   '--media-y': (sourceMedia?.focalY ?? 50) + '%',
@@ -24,6 +27,7 @@ const crop = {
   style={crop}
   class:list={[
     'object-feature',
+    `object-feature--${placement}`,
     { 'object-feature--lead': lead, 'object-feature--compact': compact },
   ]}
 >
@@ -45,11 +49,7 @@ const crop = {
       )}
       <img
         src={src}
-        alt={
-          p.reviewOnly
-            ? `Illustrative concept for ${p.name}; not an actual product design`
-            : image(p).alt
-        }
+        alt={imageAlt}
         width="1536"
         height="1024"
         loading={lead ? 'eager' : 'lazy'}
@@ -57,25 +57,38 @@ const crop = {
       />
     </picture>
   )}
-  <div class="feature-copy">
+  <div class="feature-fallback" hidden={!!src}>Image unavailable · {imageAlt}</div>
+  <div class="feature-heading">
     <Heading>
-      <a href={`/products/${p.slug}`}>
         {p.name}
         <span class="brand-dot" aria-hidden="true">
           .
         </span>
-      </a>
     </Heading>
+  </div>
+  <div class="feature-copy">
     <p>
       {descriptor(p)}
-      {p.reviewOnly && ' · Draft concept'}
     </p>
-    <a class="story-link" href={`/products/${p.slug}`}>
-      <ArrowRight size={24} />
-      <span>Explore {p.name}</span>
-    </a>
+    {status && <p class="feature-status">{status}</p>}
+    <div class="feature-actions">
+      <a class="story-link" href={`/products/${p.slug}`} aria-label={`Explore ${p.name}`}>Explore</a>
+      {canPurchase(p) && <a class="story-link story-link--buy" href={`/products/${p.slug}/configure`} aria-label={`Buy ${p.name}`}>Buy</a>}
+    </div>
   </div>
-  {p.reviewOnly && (
+  {p.reviewOnly && !isLocalAppleDemo(p.slug) && (
     <span class="placeholder-label">Illustrative placeholder</span>
   )}
 </article>
+
+<script>
+  const showFallback = (img: HTMLImageElement) => {
+    const picture = img.closest('picture')
+    const fallback = picture?.parentElement?.querySelector<HTMLElement>('.feature-fallback')
+    if (picture && fallback) { picture.hidden = true; fallback.hidden = false }
+  }
+  document.querySelectorAll<HTMLImageElement>('.object-feature .feature-art img').forEach(img => {
+    if (img.complete && img.naturalWidth === 0) showFallback(img)
+    else img.addEventListener('error', () => showFallback(img), { once: true })
+  })
+</script>

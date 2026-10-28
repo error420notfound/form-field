@@ -1,0 +1,16 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import CustomerAccount from '../../components/interactive/CustomerAccount'
+import BagView from '../../components/interactive/BagView'
+---
+<Layout title="Sign in for checkout">
+  <section class="section checkout-signin">
+    <a class="text-link" href="/cart">← Back to your bag</a>
+    <h1>Sign in for checkout<span class="brand-dot">.</span></h1>
+    <div class="checkout-signin-layout">
+      <section><h2>Your account</h2><CustomerAccount checkout client:load /></section>
+      <section aria-label="Your bag summary"><h2>Your bag</h2><p class="muted">Your selections are waiting for you.</p><BagView preview compact client:load /></section>
+    </div>
+    <noscript>Enable JavaScript to sign in and review your bag.</noscript>
+  </section>
+</Layout>

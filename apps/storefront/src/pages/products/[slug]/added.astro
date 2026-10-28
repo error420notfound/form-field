@@ -1,0 +1,15 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import AddedSummary from '../../../components/interactive/AddedSummary'
+import UpsellRecommendations from '../../../components/interactive/UpsellRecommendations'
+import { product } from '../../../lib/cms'
+let p
+try { p = await product(Astro.params.slug!) } catch { Astro.response.status = 503 }
+if (!p && Astro.response.status !== 503) Astro.response.status = 404
+const value = Astro.url.searchParams.get('variant')
+const variantId = value && /^[1-9]\d*$/.test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : undefined
+---
+<Layout title="Added to your bag">
+  {p ? <><AddedSummary id={p.id} variantId={variantId} client:load /><UpsellRecommendations sourceId={p.id} client:load /></> : <section class="section"><h1>Object unavailable.</h1><a href="/cart">Review your bag</a></section>}
+  <noscript><a href="/cart">Review your bag</a></noscript>
+</Layout>

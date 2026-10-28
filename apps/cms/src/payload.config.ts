@@ -5,10 +5,12 @@ import {
   buildConfig,
   type CollectionConfig,
   type PayloadRequest,
+  type Where,
 } from 'payload'
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import sharp from 'sharp'
 import { linkedOdooProduct } from './odoo-product'
+import { localAppleDemoSlugs } from './local-apple-demo'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const admin = ({ req }: { req: PayloadRequest }) =>
   req.user?.collection === 'users'
@@ -32,7 +34,9 @@ const products: CollectionConfig = {
   },
   access: {
     ...writable,
-    read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }),
+    read: ({ req }) => (req.user ? true : process.env.NODE_ENV === 'production'
+      ? { _status: { equals: 'published' }, slug: { not_in: [...localAppleDemoSlugs] } } as Where
+      : { _status: { equals: 'published' } }),
     readVersions: admin,
   },
   fields: [
@@ -45,6 +49,17 @@ const products: CollectionConfig = {
       type: 'select',
       defaultValue: 'paired',
       options: ['broad', 'paired'],
+    },
+    {
+      name: 'homepageTextPlacement',
+      label: 'Homepage paired tile text placement',
+      type: 'select',
+      defaultValue: 'above',
+      options: [
+        { label: 'Above image', value: 'above' },
+        { label: 'Below image', value: 'below' },
+        { label: 'Title above, caption below', value: 'split' },
+      ],
     },
     {
       name: 'themeId',
@@ -62,6 +77,14 @@ const products: CollectionConfig = {
       maxRows: 2,
     },
     {
+      name: 'upsellProducts',
+      label: 'Upsell products',
+      admin: { description: 'Ordered recommendations shown after adding this product and in the bag.' },
+      type: 'relationship',
+      relationTo: 'products',
+      hasMany: true,
+    },
+    {
       name: 'story',
       type: 'array',
       fields: [
@@ -71,9 +94,38 @@ const products: CollectionConfig = {
         { name: 'media', type: 'upload', relationTo: 'media' },
       ],
     },
+    {
+      name: 'pdpSections',
+      type: 'array',
+      fields: [
+        { name: 'sectionId', type: 'text', required: true },
+        { name: 'variant', type: 'select', required: true, options: ['wide', 'split', 'paired', 'detail'] },
+        { name: 'textAlignment', label: 'Text alignment', type: 'select', defaultValue: 'left', options: [{ label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }] },
+        { name: 'label', type: 'text' },
+        { name: 'heading', type: 'text', required: true },
+        { name: 'copy', type: 'textarea' },
+        { name: 'media', type: 'upload', relationTo: 'media' },
+        { name: 'caption', type: 'text' },
+        { name: 'cards', type: 'array', fields: [
+          { name: 'heading', type: 'text', required: true },
+          { name: 'copy', type: 'textarea' },
+          { name: 'media', type: 'upload', relationTo: 'media' },
+        ] },
+        { name: 'callouts', type: 'array', fields: [
+          { name: 'heading', type: 'text', required: true },
+          { name: 'copy', type: 'textarea' },
+        ] },
+        { name: 'modalLabel', type: 'text' },
+        { name: 'modalCopy', type: 'textarea' },
+      ],
+    },
     { name: 'shortDescription', type: 'textarea', required: true },
     { name: 'description', type: 'textarea', required: true },
     { name: 'gallery', type: 'upload', relationTo: 'media', hasMany: true },
+    { name: 'variantImages', type: 'array', admin: { description: 'Optional product images keyed by Odoo variant ID.' }, fields: [
+      { name: 'odooVariantId', type: 'number', required: true, min: 1 },
+      { name: 'image', type: 'upload', relationTo: 'media', required: true },
+    ] },
     {
       name: 'categories',
       type: 'relationship',
@@ -173,7 +225,7 @@ export default buildConfig({
     },
     {
       slug: 'media',
-      access: { ...writable, read: publicRead },
+      access: { ...writable, read: ({ req }) => req.user || process.env.NODE_ENV !== 'production' ? true : { or: [{ role: { exists: false } }, { role: { not_equals: 'local-homeview-demo' } }] } },
       upload: {
         staticDir: path.join(root, 'uploads'),
         mimeTypes: ['image/*'],

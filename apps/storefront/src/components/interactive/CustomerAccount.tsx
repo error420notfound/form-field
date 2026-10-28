@@ -6,7 +6,7 @@ type Profile = { id: number; email: string; name: string; address: string; apart
 type Order = { reference: string; odooReference?: string; status: string; paymentStatus?: string; createdAt: string; subtotal: number; delivery: string; items: { name: string; quantity: number; unitPrice: number }[] }
 const fields = [['name', 'Full name'], ['address', 'Address'], ['apartment', 'Apartment / building'], ['city', 'City'], ['postalCode', 'Postal code'], ['state', 'State'], ['country', 'Country']] as const
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value / 100)
-export default function CustomerAccount() {
+export default function CustomerAccount({ checkout = false }: { checkout?: boolean }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,6 +19,7 @@ export default function CustomerAccount() {
     if (!response.ok) throw new Error('Account service unavailable.')
     const data = await response.json()
     setProfile(data.customer); setOrders(data.orders)
+    if (checkout && data.customer) window.location.replace('/checkout')
   }
   useEffect(() => { refresh().catch(() => setMessage('Account service unavailable.')).finally(() => setLoading(false)) }, [])
   async function submit(event: SubmitEvent<HTMLFormElement>, action: 'login' | 'signup' | 'profile') {
@@ -41,7 +42,7 @@ export default function CustomerAccount() {
   if (loading) return <p>Loading your account…</p>
   return <div>
     {!profile ? <>
-      <p>Sign in to place demo orders and view their status.</p>
+      <p>{checkout ? 'Sign in or create an account to continue your demo checkout.' : 'Sign in to place demo orders and view their status.'}</p>
       <form className="checkout-fields" onSubmit={e => void submit(e, mode)}>
         {mode === 'signup' && <label>Full name<Input name="name" required maxLength={200} autoComplete="name" /></label>}
         <label>Email<Input name="email" type="email" required maxLength={200} autoComplete="email" /></label>

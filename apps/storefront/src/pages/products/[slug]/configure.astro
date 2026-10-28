@@ -1,0 +1,17 @@
+---
+import { isLocalAppleDemo } from '../../../../../cms/src/local-apple-demo'
+import Layout from '../../../layouts/Layout.astro'
+import Configurator from '../../../components/interactive/Configurator'
+import { product, media, mediaURL } from '../../../lib/cms'
+let p
+try { p = isLocalAppleDemo(Astro.params.slug!) && !import.meta.env.DEV ? undefined : await product(Astro.params.slug!) } catch { Astro.response.status = 503 }
+const demo = p?.slug === 'homeview-review' && import.meta.env.DEV
+if (!p) Astro.response.status = Astro.response.status === 503 ? 503 : 404
+const allowed = p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
+const gallery = (p?.gallery || []).map(media).filter(m => m !== null).map(m => ({ src: mediaURL(m.sizes?.gallery?.url || m.url), alt: m.alt }))
+const facts = p ? [['Materials', p.materials], ['Dimensions', p.dimensions], ['Care', p.care], ['What’s included', p.included]].flatMap(([label, value]) => value ? [{ label: label!, value }] : []) : []
+const variantImages = (p?.variantImages || []).flatMap(item => { const m = media(item.image); return m ? [{ variantId: item.odooVariantId, src: mediaURL(m.sizes?.gallery?.url || m.url), alt: m.alt }] : [] })
+---
+<Layout title={p ? `Configure ${p.name}` : 'Object unavailable'} theme={p?.themeId}>
+  {p && (allowed || demo) ? <><Configurator client:load id={p.id} slug={p.slug} name={p.name} description={p.shortDescription} gallery={gallery} variantImages={variantImages} facts={facts} demo={!!demo} /><noscript><p class="section">Enable JavaScript to choose a configuration.</p></noscript></> : <section class="section error-state"><h1>{p ? 'Not available to configure.' : 'Object unavailable.'}</h1><p>{p ? 'This object is not currently available to purchase.' : 'Please try again or explore the collection.'}</p><a class="text-link" href={p ? `/products/${p.slug}` : '/shop'}>{p ? 'Back to the story' : 'Explore objects'}</a></section>}
+</Layout>

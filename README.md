@@ -47,6 +47,8 @@ This creates three clearly fictional demonstration products, categories, locally
 
 Edit products, story chapters, editorial order, broad/paired homepage modules, approved theme IDs and related objects in Payload. Upload media with descriptive alt text, provenance and desktop/mobile focal points. Publish stories independently of purchase eligibility. Unknown prices stay unknown; an available status, supplied integer price, purchase eligibility and a cleared local-review flag are all needed for Add to bag. Existing priced demo records remain compatible. Storefront tokens are in `apps/storefront/src/styles/global.css`. The public brand is fixed to form+field. Store Settings still supplies confirmed contact information.
 
+For product recommendations, edit a product's **Upsell products** relationship in Payload and arrange the selected products in the desired order. The post-add page uses that list; the bag combines the lists for its products, excluding duplicates and objects already in the bag. With no configured recommendations, up to three eligible catalogue products are used. Products need available Odoo configurations before they can appear; this may result in fewer than three recommendations. The new relationship uses Payload's existing relationship tables and its migration makes no physical schema changes.
+
 ## Checks and production builds
 
 ```powershell

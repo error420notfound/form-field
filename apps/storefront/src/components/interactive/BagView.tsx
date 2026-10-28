@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useBag, updateQuantity, removeFromBag, restoreToBag } from '@/lib/bag'
+import { useBag, updateQuantity, removeFromBag, restoreToBag, resolveLegacySelections } from '@/lib/bag'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -14,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 type Line = {
   id: number
   quantity: number
+  variantId?: number
+  resolvedVariantId?: number
+  options?: { attribute: string; value: string }[]
   name: string
   url?: string
   image?: { url: string; alt: string }
@@ -57,7 +60,7 @@ export default function BagView({
       .then(async (response) => {
         if (!response.ok) throw new Error('Refresh failed')
         const data = (await response.json()) as Result
-        if (!controller.signal.aborted) setResult(data)
+        if (!controller.signal.aborted) { setResult(data); resolveLegacySelections(items, data.lines) }
       })
       .catch(() => {
         if (!controller.signal.aborted) setError(true)
@@ -141,7 +144,7 @@ export default function BagView({
             result && (
               <div className="bag-lines">
                 {result.lines.map((line) => (
-                  <article className="bag-line" key={line.id}>
+                  <article className="bag-line" key={`${line.id}:${line.variantId ?? 'legacy'}`}>
                     {line.image?.url && (
                       <a href={line.url}>
                         <img
@@ -160,6 +163,7 @@ export default function BagView({
                           line.name
                         )}
                       </h3>
+                      {!!line.options?.length && <p>{line.options.map(option => `${option.attribute}: ${option.value}`).join(' · ')}</p>}
                       <p className="muted">
                         {line.purchasable
                           ? 'Available'
@@ -181,7 +185,7 @@ export default function BagView({
                               required
                               aria-label={`Quantity for ${line.name}`}
                               value={
-                                items.find((s) => s.id === line.id)?.quantity ??
+                                items.find((s) => s.id === line.id && s.variantId === line.variantId)?.quantity ??
                                 line.quantity
                               }
                               onChange={(e) => {
@@ -189,6 +193,7 @@ export default function BagView({
                                   updateQuantity(
                                     line.id,
                                     Number(e.target.value),
+                                    line.variantId,
                                   )
                               }}
                             />
@@ -197,7 +202,7 @@ export default function BagView({
                             variant="link"
                             aria-label={`Remove ${line.name}`}
                             onClick={() => {
-                              setRemoved(removeFromBag(line.id))
+                              setRemoved(removeFromBag(line.id, line.variantId))
                               requestAnimationFrame(() =>
                                 undoRef.current?.focus(),
                               )

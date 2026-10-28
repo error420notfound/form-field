@@ -1,0 +1,38 @@
+---
+import { media, mediaURL, type Product } from '../lib/cms'
+type Section = NonNullable<Product['pdpSections']>[number]
+const { sections } = Astro.props as { sections: Section[] }
+const imageOf = (value: Parameters<typeof media>[0]) => {
+  const m = media(value)
+  return m ? { src: mediaURL(m.sizes?.gallery?.url || m.url), alt: m.alt, caption: m.caption } : null
+}
+---
+<div class="pdp-chapters">
+  {sections.map((section, i) => {
+    const img = imageOf(section.media)
+    return <section class:list={['pdp-chapter', `pdp-chapter--${section.variant}`, { 'pdp-chapter--center': section.textAlignment === 'center' }]} id={`chapter-${section.sectionId}`}>
+      <div class="pdp-chapter-intro">
+        {section.label && <p class="pdp-label">{section.label}</p>}
+        <h2>{section.heading}</h2>
+        {section.copy && <p class="pdp-copy">{section.copy}</p>}
+        {section.modalLabel && section.modalCopy && <button class="pdp-more" type="button" data-pdp-open={`pdp-dialog-${i}`}>{section.modalLabel} <span aria-hidden="true">＋</span></button>}
+      </div>
+      {img && <figure class="pdp-chapter-image"><img src={img.src} alt={img.alt} width="1600" height="1000" loading="lazy" />{section.caption && <figcaption>{section.caption}</figcaption>}</figure>}
+      {section.cards?.length ? <div class="pdp-cards">{section.cards.map(card => { const cm = imageOf(card.media); return <article><div>{cm && <img src={cm.src} alt={cm.alt} width="800" height="700" loading="lazy" />}</div><h3>{card.heading}</h3>{card.copy && <p>{card.copy}</p>}</article> })}</div> : null}
+      {section.callouts?.length ? <div class="pdp-callouts">{section.callouts.map(item => <div><h3>{item.heading}</h3>{item.copy && <p>{item.copy}</p>}</div>)}</div> : null}
+      {section.modalLabel && section.modalCopy && <dialog id={`pdp-dialog-${i}`} class="pdp-dialog" aria-labelledby={`pdp-dialog-title-${i}`}><div class="pdp-dialog-content"><button type="button" class="pdp-close" aria-label="Close details" data-pdp-close>×</button><p class="pdp-label">{section.label}</p><h2 id={`pdp-dialog-title-${i}`}>{section.heading}</h2><p>{section.modalCopy}</p>{img && <img src={img.src} alt={img.alt} width="1200" height="800" loading="lazy" />}</div></dialog>}
+    </section>
+  })}
+</div>
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null
+    const opener = target?.closest<HTMLButtonElement>('[data-pdp-open]')
+    if (opener) {
+      const dialog = document.getElementById(opener.dataset.pdpOpen || '')
+      if (dialog instanceof HTMLDialogElement) { dialog.showModal(); dialog.addEventListener('close', () => opener.focus(), { once: true }) }
+    }
+    const close = target?.closest('[data-pdp-close]')
+    if (close) close.closest('dialog')?.close()
+  })
+</script>

@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import BagView from '../components/interactive/BagView'
+import UpsellRecommendations from '../components/interactive/UpsellRecommendations'
 ---
 
 <Layout title="Your bag">
@@ -20,4 +21,5 @@ import BagView from '../components/interactive/BagView'
       <a href="/shop">Browse objects</a>.
     </noscript>
   </section>
+  <UpsellRecommendations client:load />
 </Layout>

@@ -1,0 +1,35 @@
+---
+import { media, mediaURL, products, type Product } from '../lib/cms'
+import { isDigitalAppleDemo } from '../../../cms/src/local-apple-demo'
+import PdpSections from './PdpSections.astro'
+const { product: p } = Astro.props as { product: Product }
+const sections = p.pdpSections || []
+const hero = media(p.gallery?.[0])
+const highlights = sections.filter(s => media(s.media)).slice(0, 3)
+const links: Record<string, string[]> = {
+  'siri-ai-review': ['apple-intelligence-review'],
+  'apple-intelligence-review': ['siri-ai-review'],
+  'creator-studio-review': ['final-cut-pro-review', 'logic-pro-review', 'pixelmator-pro-review', 'keynote-review'],
+  'final-cut-pro-review': ['creator-studio-review'],
+  'logic-pro-review': ['creator-studio-review'],
+  'pixelmator-pro-review': ['creator-studio-review'],
+  'keynote-review': ['creator-studio-review'],
+}
+let related: Product[] = []
+if (links[p.slug]?.length) {
+  try { const items = await products(); related = links[p.slug].flatMap(slug => items.filter(item => item.slug === slug)) } catch { /* The main story remains readable if related content cannot load. */ }
+}
+---
+<div class:list={["homeview", { "digital-showcase": isDigitalAppleDemo(p.slug) }]}>
+  <nav class="product-bar homeview-bar" aria-label={`${p.name} story navigation`}><a href="#overview">{p.name}</a><div><a class="product-detail-link" href="#highlights">Highlights</a><a class="homeview-nav-cta" href="#story">Explore the story ↓</a></div></nav>
+  <section class="homeview-hero" id="overview">
+    <p class="homeview-demo">{isDigitalAppleDemo(p.slug) ? 'Digital experience · Local Apple reference demonstration' : 'Local demonstration · Apple reference'}</p>
+    <h1>{p.name}<span class="brand-dot">.</span></h1><p class="homeview-tagline">{p.descriptor}</p><p class="homeview-subtitle">{p.shortDescription}</p><a class="homeview-link" href="#highlights">Explore the story ↓</a>
+    {hero && <img src={mediaURL(hero.sizes?.gallery?.url || hero.url)} alt={hero.alt} width="1600" height="900" fetchpriority="high" />}
+    <p class="homeview-source">{isDigitalAppleDemo(p.slug) ? 'Static interface examples from supplied Apple imagery; this is not a functioning app. Claims are not independently verified.' : 'Local prototype based on supplied Apple imagery and press material. Claims are not independently verified.'}</p>
+  </section>
+  {highlights.length > 0 && <section class="homeview-highlights" id="highlights"><div class="homeview-heading"><h2>Get the highlights<span class="brand-dot">.</span></h2><p>A first look.</p></div><div class="homeview-highlight-list">{highlights.map(s => { const m = media(s.media); return <a class="homeview-highlight" href={`#chapter-${s.sectionId}`}><div><p class="pdp-label">{s.label}</p><h3>{s.heading}</h3><span>Explore <span aria-hidden="true">↗</span></span></div>{m && <img src={mediaURL(m.sizes?.card?.url || m.url)} alt="" width="640" height="540" loading="lazy" />}</a> })}</div></section>}
+  <div id="story"><PdpSections sections={sections} /></div>
+  {related.length > 0 && <section class="digital-related" aria-labelledby="related-digital-heading"><p class="pdp-label">Related stories</p><h2 id="related-digital-heading">Keep exploring<span class="brand-dot">.</span></h2><div class="digital-related-links">{related.map(item => <a href={`/products/${item.slug}`}><span>{item.name}</span><span aria-hidden="true">↗</span></a>)}</div></section>}
+  <section class="homeview-end"><p class="pdp-label">Local demonstration</p><h2>More to explore<span class="brand-dot">.</span></h2><p>This non-purchasable prototype uses supplied Apple reference material. Features and conditions are described by the source.</p><a href="/shop" class="homeview-link">Explore objects ↗</a></section>
+</div>

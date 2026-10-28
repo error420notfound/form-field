@@ -14,9 +14,8 @@ website orders. Demo checkout assigns orders to this sales team.
    unavailable until their details and eligibility are confirmed.
 4. Link the Payload product ID to the Odoo product variant ID in the local
    `apps/cms/data/odoo-products.json` file. Its JSON keys are Payload IDs and
-   its values are Odoo variant IDs. The local mapping currently links Payload
-   PourFrame (4) to Odoo PourFrame (1, reference `POURFRAME-001`). Merely using
-   the same name or reference does not create a link. Back up this mapping with
+   its values are Odoo variant IDs. Merely using the same name or reference does not create a link.
+   The mapping file must be created locally when it is absent. Back up this mapping with
    the CMS data.
 
 Linked product pages read available stock from Odoo; linked cart lines are
@@ -69,3 +68,21 @@ The Odoo URL, database name, API key and optional `ODOO_WAREHOUSE_ID` and
 committed. Run `npm.cmd run check:odoo -w apps/cms` from the project root to
 check the connection and list visible warehouses. Odoo API keys expire; replace
 the local key when needed. Never put the key in client-side code.
+
+## Configurator and variants
+
+The existing mapping links a Payload product to an Odoo product variant. The
+configurator uses that variant to find its product template and reads existing,
+active, sale-enabled sibling variants, their attributes, variant sales prices
+(including attribute extras), and warehouse stock. Custom values and dynamic
+variant creation are not supported. Products with Odoo non-variant attributes
+are blocked rather than silently omitting those options. Configure variants in Odoo before linking;
+no Odoo products or variants are created by the storefront. The integration
+user needs read access to product variants and template attribute values as well
+as inventory. Existing product-only bag entries resolve to the linked anchor
+variant, and different variants stay separate in the bag.
+
+Payload's optional `variantImages` associates an Odoo variant ID with a media
+record. If none is supplied, the product gallery is used. The local HomeView
+configurator is a non-purchasable preview with no live Odoo or prices. Recheck
+variant availability and prices at purchase; displayed stock is not reserved.

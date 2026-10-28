@@ -3,6 +3,11 @@ import Layout from '../../layouts/Layout.astro'
 import AddToCart from '../../components/AddToCart.astro'
 import ProductCard from '../../components/ProductCard.astro'
 import Gallery from '../../components/interactive/Gallery'
+import PourFrameStory from '../../components/PourFrameStory.astro'
+import HomeViewStory from '../../components/HomeViewStory.astro'
+import AppleDemoStory from '../../components/AppleDemoStory.astro'
+import { isLocalAppleDemo } from '../../../../cms/src/local-apple-demo'
+import PdpSections from '../../components/PdpSections.astro'
 import {
   product,
   media,
@@ -12,12 +17,12 @@ import {
   stock,
   type Product,
 } from '../../lib/cms'
-import { art, descriptor, canPurchase } from '../../lib/catalogue'
+import { art, descriptor } from '../../lib/catalogue'
 let p: Product | undefined,
   related: Product[] = [],
   error = ''
 try {
-  p = await product(Astro.params.slug!)
+  p = isLocalAppleDemo(Astro.params.slug!) && !import.meta.env.DEV ? undefined : await product(Astro.params.slug!)
   if (p)
     related = (p.relatedObjects || [])
       .filter(
@@ -32,6 +37,7 @@ try {
     'The object’s story is temporarily unavailable. Please try again shortly.'
 }
 if (!p) Astro.response.status = error ? 503 : 404
+const canConfigure = !!p && !p.reviewOnly && p.purchaseEligible !== false && p.availability === 'available'
 const reviewImage = p && art(p)
 const inventory = p ? await stock(p.id) : null
 const images = p
@@ -64,7 +70,13 @@ const facts = p
 ---
 
 <Layout title={p?.name || 'Object unavailable'} theme={p?.themeId}>
-  {p ? (
+  {p && p.slug === 'homeview-review' && import.meta.env.DEV ? (
+    <HomeViewStory product={p} />
+  ) : p && isLocalAppleDemo(p.slug) && import.meta.env.DEV ? (
+    <AppleDemoStory product={p} />
+  ) : p && p.slug === 'pourframe-review' && p.reviewOnly ? (
+    <PourFrameStory product={p} images={images} related={related} inventory={inventory} />
+  ) : p ? (
     <>
       <nav class="product-bar" aria-label={`${p.name} story navigation`}>
         <a href="#overview">{p.name}</a>
@@ -76,7 +88,7 @@ const facts = p
             Practical information
           </a>
           <a class="text-link" href="#purchase">
-            {canPurchase(p) ? 'Choose options' : 'Availability'}
+            {canConfigure ? 'Choose options' : 'Availability'}
           </a>
         </div>
       </nav>
@@ -105,7 +117,7 @@ const facts = p
               <>
                 <p>
                   {typeof p.price === 'number'
-                    ? price(p.price)
+                    ? `Linked configuration: ${price(p.price)}`
                     : 'Price to be confirmed'}{' '}
                   · {availability(p.availability)}
                 </p>
@@ -115,14 +127,16 @@ const facts = p
               </>
             )}
             <a class="text-link" href="#purchase">
-              {canPurchase(p) ? 'Choose options' : 'View availability'}
+              {canConfigure ? 'Choose options' : 'View availability'}
             </a>
           </div>
           <Gallery images={images} name={p.name} client:load />
         </div>
       </section>
       <div id="details">
-        {chapters.length ? (
+        {p.pdpSections?.length ? (
+          <PdpSections sections={p.pdpSections} />
+        ) : chapters.length ? (
           chapters.map((chapter, i) => {
             const m = media(chapter.media)
             return (
@@ -194,12 +208,12 @@ const facts = p
       <section class="purchase-section section" id="purchase">
         <div>
           <p class="section-label">
-            {canPurchase(p) ? 'Your selection' : 'Availability'}
+            {canConfigure ? 'Your selection' : 'Availability'}
           </p>
-          <h2>{canPurchase(p) ? p.name : 'Not available to purchase.'}</h2>
+          <h2>{canConfigure ? p.name : 'Not available to purchase.'}</h2>
           <p>
             {typeof p.price === 'number'
-              ? price(p.price)
+              ? `Linked configuration: ${price(p.price)}`
               : 'Price to be confirmed.'}
           </p>
           {p.reviewOnly && (
@@ -214,7 +228,7 @@ const facts = p
         <div>
           <AddToCart product={p} />
           <p class="muted">
-            {canPurchase(p)
+            {canConfigure
               ? 'Local demo orders do not collect payment.'
               : 'This concept cannot be added to your bag.'}
           </p>

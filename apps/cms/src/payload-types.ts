@@ -279,10 +279,15 @@ export interface Product {
   descriptor?: string | null;
   editorialOrder?: number | null;
   homepageSize?: ('broad' | 'paired') | null;
+  homepageTextPlacement?: ('above' | 'below' | 'split') | null;
   themeId?: ('neutral' | 'blue' | 'yellow') | null;
   purchaseEligible?: boolean | null;
   reviewOnly?: boolean | null;
   relatedObjects?: (number | Product)[] | null;
+  /**
+   * Ordered recommendations shown after adding this product and in the bag.
+   */
+  upsellProducts?: (number | Product)[] | null;
   story?:
     | {
         chapterId: string;
@@ -292,9 +297,49 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  pdpSections?:
+    | {
+        sectionId: string;
+        variant: 'wide' | 'split' | 'paired' | 'detail';
+        textAlignment?: ('left' | 'center') | null;
+        label?: string | null;
+        heading: string;
+        copy?: string | null;
+        media?: (number | null) | Media;
+        caption?: string | null;
+        cards?:
+          | {
+              heading: string;
+              copy?: string | null;
+              media?: (number | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        callouts?:
+          | {
+              heading: string;
+              copy?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        modalLabel?: string | null;
+        modalCopy?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   shortDescription: string;
   description: string;
   gallery?: (number | Media)[] | null;
+  /**
+   * Optional product images keyed by Odoo variant ID.
+   */
+  variantImages?:
+    | {
+        odooVariantId: number;
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   categories?: (number | Category)[] | null;
   /**
    * For linked products, the displayed price comes from Odoo. Edit it in Odoo.
@@ -596,10 +641,12 @@ export interface ProductsSelect<T extends boolean = true> {
   descriptor?: T;
   editorialOrder?: T;
   homepageSize?: T;
+  homepageTextPlacement?: T;
   themeId?: T;
   purchaseEligible?: T;
   reviewOnly?: T;
   relatedObjects?: T;
+  upsellProducts?: T;
   story?:
     | T
     | {
@@ -609,9 +656,46 @@ export interface ProductsSelect<T extends boolean = true> {
         media?: T;
         id?: T;
       };
+  pdpSections?:
+    | T
+    | {
+        sectionId?: T;
+        variant?: T;
+        textAlignment?: T;
+        label?: T;
+        heading?: T;
+        copy?: T;
+        media?: T;
+        caption?: T;
+        cards?:
+          | T
+          | {
+              heading?: T;
+              copy?: T;
+              media?: T;
+              id?: T;
+            };
+        callouts?:
+          | T
+          | {
+              heading?: T;
+              copy?: T;
+              id?: T;
+            };
+        modalLabel?: T;
+        modalCopy?: T;
+        id?: T;
+      };
   shortDescription?: T;
   description?: T;
   gallery?: T;
+  variantImages?:
+    | T
+    | {
+        odooVariantId?: T;
+        image?: T;
+        id?: T;
+      };
   categories?: T;
   price?: T;
   currency?: T;

@@ -20,7 +20,7 @@
     "migrate": "npm run migrate -w apps/cms",
     "format": "node scripts/run.mjs prettier --write .",
     "setup:review": "node scripts/upgrade-review.mjs",
-    "test": "node --experimental-strip-types --test scripts/purchase-policy.test.ts"
+    "test": "node --import tsx --test scripts/purchase-policy.test.ts scripts/configurator.test.ts scripts/bag-variants.test.ts scripts/order-quote.test.ts scripts/cart-resolution.test.ts scripts/upsell.test.ts"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

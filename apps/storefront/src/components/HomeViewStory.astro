@@ -1,0 +1,34 @@
+---
+import { media, mediaURL, type Product } from '../lib/cms'
+import PdpSections from './PdpSections.astro'
+const { product: p } = Astro.props as { product: Product }
+const gallery = (p.gallery || []).map(media).filter(m => m !== null).map(m => ({src: mediaURL(m.sizes?.gallery?.url || m.url), alt: m.alt}))
+const sections = p.pdpSections || []
+const highlights = sections.filter(s => ['faces', 'sound', 'home'].includes(s.sectionId))
+---
+<div class="homeview">
+  <nav class="product-bar homeview-bar" aria-label="HomeView story navigation"><a href="#homeview-overview">HomeView</a><div><a class="product-detail-link" href="#homeview-highlights">Highlights</a><a class="product-detail-link" href="#homeview-look">Closer look</a><a class="homeview-nav-cta" href="#chapter-overview">Explore the story ↓</a></div></nav>
+  <section class="homeview-hero" id="homeview-overview">
+    <p class="homeview-demo">Local demonstration · Apple HomeView</p>
+    <h1>HomeView<span class="brand-dot">.</span></h1><p class="homeview-tagline">A shared screen for the home.</p>
+    <p class="homeview-subtitle">A closer look at entertainment, connection and the everyday.</p>
+    <a class="homeview-link" href="#homeview-highlights">Explore the story ↓</a> <a class="homeview-link" href="/products/homeview-review/configure">Explore configurations ↗</a>
+    {gallery[0] && <img src={gallery[0].src} alt={gallery[0].alt} width="1600" height="900" fetchpriority="high" />}
+    <p class="homeview-source">Local prototype based on supplied Apple imagery and press material. Product claims are not independently verified.</p>
+  </section>
+  <section class="homeview-highlights" id="homeview-highlights"><div class="homeview-heading"><h2>Get the highlights<span class="brand-dot">.</span></h2><p>Three ways into the story.</p></div><div class="homeview-highlight-list">{highlights.map(s => { const m = media(s.media); return <a class="homeview-highlight" href={`#chapter-${s.sectionId}`}><div><p class="pdp-label">{s.label}</p><h3>{s.heading}</h3><span>Explore <span aria-hidden="true">↗</span></span></div>{m && <img src={mediaURL(m.sizes?.card?.url || m.url)} alt="" width="640" height="540" loading="lazy" />}</a> })}</div></section>
+  {gallery.length > 1 && <section class="homeview-look" id="homeview-look"><div class="homeview-heading"><h2>Take a closer look<span class="brand-dot">.</span></h2><p>Explore the form.</p></div><div class="homeview-viewer"><div class="homeview-viewer-options" role="group" aria-label="Choose a HomeView image">{gallery.slice(1).map((img, i) => <button type="button" data-view-src={img.src} data-view-alt={img.alt} aria-pressed={i === 0 ? 'true' : 'false'}>{['Screen angle', 'Rear connection', 'Wall-mounted model'][i] || `View ${i + 1}`}</button>)}</div><figure><img id="homeview-view-image" src={gallery[1].src} alt={gallery[1].alt} width="1600" height="1000" loading="lazy" /><figcaption id="homeview-view-caption">{gallery[1].alt}</figcaption></figure></div></section>}
+  <PdpSections sections={sections} />
+  <section class="homeview-faq"><p class="pdp-label">Good to know</p><h2>Questions, answered<span class="brand-dot">.</span></h2><details><summary>Is the wall-mounted model the same as the tabletop model?</summary><p>The supplied material describes a separate wall-mounted model, with purpose-built mounts and a different audio configuration.</p></details><details><summary>What is needed for setup?</summary><p>The supplied material states that setup and multiuser support require a compatible iPhone or iPad with current software.</p></details><details><summary>Are smart-home accessories included?</summary><p>Compatible HomeKit or Matter accessories are required for smart-home controls and are sold separately. Some camera features require an eligible iCloud+ plan.</p></details></section>
+  <section class="homeview-end"><p class="pdp-label">Local demonstration</p><h2>More to explore<span class="brand-dot">.</span></h2><p>Apple HomeView is presented here as a non-purchasable prototype based on supplied press material.</p><a href="/shop" class="homeview-link">Explore objects ↗</a></section>
+</div>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-view-src]').forEach(button => button.addEventListener('click', () => {
+    const image = document.querySelector<HTMLImageElement>('#homeview-view-image')
+    const caption = document.querySelector<HTMLElement>('#homeview-view-caption')
+    if (!image || !button.dataset.viewSrc) return
+    image.src = button.dataset.viewSrc; image.alt = button.dataset.viewAlt || ''
+    if (caption) caption.textContent = image.alt
+    document.querySelectorAll('[data-view-src]').forEach(el => el.setAttribute('aria-pressed', String(el === button)))
+  }))
+</script>

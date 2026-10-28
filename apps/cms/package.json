@@ -13,7 +13,9 @@
     "migrate:create": "node ../../scripts/run.mjs payload migrate:create",
     "seed:review": "node ../../scripts/run.mjs tsx src/seed-review.ts",
     "media:review": "node ../../scripts/run.mjs tsx src/attach-review-media.ts",
-    "check:odoo": "node ../../scripts/check-odoo.mjs"
+    "check:odoo": "node ../../scripts/check-odoo.mjs",
+    "seed:homeview": "node ../../scripts/run.mjs tsx src/seed-homeview.ts",
+    "seed:apple-demos": "node ../../scripts/run.mjs tsx src/seed-apple-demos.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.91.0",

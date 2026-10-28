@@ -1,0 +1,88 @@
+---
+import Gallery from './interactive/Gallery'
+import AddToCart from './AddToCart.astro'
+import ProductCard from './ProductCard.astro'
+import { media, mediaURL, price, type Product } from '../lib/cms'
+import { canPurchase, descriptor } from '../lib/catalogue'
+
+interface Image { src: string; alt: string; placeholder?: boolean }
+const { product: p, images, related, inventory } = Astro.props as {
+  product: Product
+  images: Image[]
+  related: Product[]
+  inventory: Awaited<ReturnType<typeof import('../lib/cms').stock>>
+}
+const chapters = p.story || []
+const facts = [
+  ['Materials', p.materials],
+  ['Dimensions', p.dimensions],
+  ['Care', p.care],
+  ['What’s included', p.included],
+].filter(([, value]) => value)
+const firstImage = images[0]
+---
+
+<div class="pourframe-story">
+  <nav class="product-bar pourframe-bar" aria-label={`${p.name} story navigation`}>
+    <a href="#overview">{p.name}</a>
+    <div>
+      <a class="product-detail-link" href="#highlights">Highlights</a>
+      <a class="product-detail-link" href="#details">Story</a>
+      <a class="pourframe-bar-action" href="#purchase">{canPurchase(p) ? 'Choose options' : 'View availability'}</a>
+    </div>
+  </nav>
+
+  <section class="pourframe-hero" id="overview">
+    <div class="pourframe-hero-copy">
+      <h1>{p.name}<span class="brand-dot" aria-hidden="true">.</span></h1>
+      <p class="pourframe-hero-heading">{descriptor(p)}</p>
+      <p class="pourframe-intro">{p.shortDescription}</p>
+      <a class="pourframe-action" href="#purchase">{canPurchase(p) ? 'Choose options' : 'View availability'} <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="pourframe-hero-media">
+      <Gallery images={images} name={p.name} client:load />
+    </div>
+  </section>
+
+  <section class="pourframe-highlights" id="highlights">
+    <div class="pourframe-section-heading">
+      <p class="pourframe-label">An introduction</p>
+      <h2>Highlights<span class="brand-dot" aria-hidden="true">.</span></h2>
+    </div>
+    <div class="pourframe-highlight-grid">
+      <article class="pourframe-highlight-image">
+        {firstImage && <img src={firstImage.src} alt="" loading="lazy" width="1536" height="1024" />}
+        <div><p class="pourframe-label">01 / The category</p><h3>{descriptor(p)}</h3></div>
+      </article>
+      <article class="pourframe-highlight-concept">
+        <div><p class="pourframe-label">02 / The idea</p><h3>A concept<br />in progress.</h3></div>
+        <p>{p.shortDescription}</p>
+      </article>
+    </div>
+    {firstImage?.placeholder && <p class="pourframe-caption">Illustrative placeholder · Not an actual product design</p>}
+  </section>
+
+  <div id="details" class="pourframe-chapters">
+    {chapters.length ? chapters.map((chapter, i) => {
+      const chapterImage = media(chapter.media)
+      return <section class="pourframe-chapter" id={`chapter-${chapter.chapterId}`}>
+        <div class="pourframe-chapter-heading"><p class="pourframe-label">{i === 0 ? 'The story' : `Chapter ${String(i + 1).padStart(2, '0')}`}</p><h2>{chapter.heading}</h2></div>
+        <div class="pourframe-chapter-content"><p>{chapter.copy}</p>
+          {chapterImage && <figure><img src={mediaURL(chapterImage.sizes?.gallery?.url || chapterImage.url)} alt={chapterImage.alt} width="1200" height="800" loading="lazy" />{chapterImage.placeholder && <figcaption class="pourframe-caption">Illustrative placeholder</figcaption>}</figure>}
+        </div>
+      </section>
+    }) : <section class="pourframe-chapter"><div class="pourframe-chapter-heading"><p class="pourframe-label">The story</p><h2>A closer look.</h2></div><div class="pourframe-chapter-content"><p>{p.description}</p></div></section>}
+    {p.features?.length ? <section class="pourframe-features"><h2>Details.</h2><div>{p.features.map((feature) => <article><h3>{feature.title}</h3><p>{feature.description}</p></article>)}</div></section> : null}
+  </div>
+
+  <section class="pourframe-practical" id="practical">
+    <div><p class="pourframe-label">The details</p><h2>Practical information<span class="brand-dot" aria-hidden="true">.</span></h2></div>
+    {facts.length ? <dl class="specifications">{facts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}</dl> : <div class="pourframe-practical-copy"><h3>Details to be confirmed.</h3><p>Specifications, materials, included items and care information have not yet been supplied.</p></div>}
+  </section>
+
+  <section class="pourframe-purchase" id="purchase">
+    <div><p class="pourframe-label">{canPurchase(p) ? 'Your selection' : 'Availability'}</p><h2>{canPurchase(p) ? p.name : 'Still taking shape.'}</h2><p>{canPurchase(p) ? p.shortDescription : 'Product specifications and availability are not yet confirmed.'}</p>{typeof p.price === 'number' && <p>{price(p.price)}</p>}{inventory && !('error' in inventory) && inventory.linked && <p>{inventory.available ? 'In stock in Odoo' : 'Out of stock'}</p>}</div>
+    <div class="pourframe-purchase-action"><AddToCart product={p} /><p>{canPurchase(p) ? 'Local demo orders do not collect payment.' : 'This concept cannot be added to your bag.'}</p><a class="text-link" href="/shop">Explore all objects</a></div>
+  </section>
+  {related.length > 0 && <section class="section related-section"><div class="section-heading"><h2>Another familiar desire.</h2><a class="text-link" href="/shop">All objects</a></div><div class="related-grid">{related.map((item) => <ProductCard product={item} headingLevel={3} />)}</div></section>}
+</div>
